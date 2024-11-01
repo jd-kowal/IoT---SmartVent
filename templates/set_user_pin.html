@@ -1,0 +1,19 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Set User PIN</title>
+</head>
+<body>
+    <h1>Set User PIN</h1>
+    <form action="{{ url_for('set_user_pin') }}" method="POST">
+        <label for="pin1">Enter your 4-digit PIN:</label>
+        <input type="text" id="pin1" name="pin1" required>
+        <label for="pin2">Confirm your 4-digit PIN:</label>
+        <input type="text" id="pin2" name="pin2" required>
+        <button type="submit">Set User PIN</button>
+    </form>
+    <a href="{{ url_for('index') }}">Back to Home</a>
+</body>
+</html>
