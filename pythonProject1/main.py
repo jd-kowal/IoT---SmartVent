@@ -77,8 +77,8 @@ def main():
     """Main function to read sensor values and control the servo."""
     try:
         # Read temperature
-        temperature = getTemperature()
-        print(f"Temperature: {temperature:.2f} °C")
+        #temperature = getTemperature()
+        #print(f"Temperature: {temperature:.2f} °C")
 
         # Read noise level
         noise_detected = getNoiseLevel()
