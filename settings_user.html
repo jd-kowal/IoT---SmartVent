@@ -1,0 +1,333 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>IoT Control Panel</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            font-family: Arial, sans-serif;
+        }
+        body {
+            margin: 0;
+            background: linear-gradient(to bottom, #3759D1, #8A5BD7, #AE5EE2);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            color: #333;
+        }
+        .container {
+            width: 90%;
+            max-width: 500px;
+            margin-top: 20px;
+            background: #FFF;
+            border-radius: 20px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+            overflow: hidden;
+            padding: 20px;
+            margin-bottom: 10px;
+        }
+        h2 {
+            margin: 0;
+            font-size: 1.5em;
+            color: #333;
+        }
+        .description {
+            font-size: 0.9em;
+            color: #888;
+            margin: 10px 0 20px;
+        }
+        .slider-container {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .slider-label {
+            font-size: 1em;
+
+        .temp-slider {
+            -webkit-appearance: none;
+            width: 100%;
+            height: 6px;
+            border-radius: 5px;
+            background: #ddd;
+            outline: none;
+            opacity: 0.7;
+            transition: opacity .2s;
+        }
+
+        }
+        .slider {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 100%;
+            height: 8px;
+            border-radius: 5px;
+            background: #ddd;
+            outline: none;
+        }
+        .slider::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            cursor: pointer;
+        }
+        .timer-slider::-webkit-slider-thumb { background-color: lightgreen; }
+        .temp-slider::-webkit-slider-thumb { background-color: rgb(128, 203, 228); }
+        .temp-slider.on-left-fill {
+            background: linear-gradient(to right, var(--color) calc(var(--value) * 1%), #ddd 0);
+        }
+
+        .temp-slider.on-right-fill {
+            background: linear-gradient(to left, var(--color) calc(100% - var(--value)* 1%), #ddd 0);
+        }
+
+
+        .noise-slider::-webkit-slider-thumb { background-color: rgb(218, 96, 96); }
+        .airquality-slider::-webkit-slider-thumb { background-color: rgb(193, 193, 22); }
+        
+        .slider.on-left-fill {
+            background: linear-gradient(to right, var(--color) calc(var(--value) * 1%), #ddd 0);
+        }
+
+        .slider.on-right-fill {
+            background: linear-gradient(to left, var(--color) calc(100% - var(--value)* 1%), #ddd 0);
+        }
+
+        .switch-container {
+            display: flex;
+            align-items: center;
+            margin-top: 10px;
+        }
+        .switch {
+            position: relative;
+            display: inline-block;
+            width: 34px;
+            height: 18px;
+            margin: 0 10px;
+        }
+        .switch input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+        .slider-switch {
+            position: absolute;
+            cursor: pointer;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: #ccc;
+            transition: 0.4s;
+            border-radius: 34px;
+        }
+        .slider-switch:before {
+            position: absolute;
+            content: "";
+            height: 14px;
+            width: 14px;
+            left: 2px;
+            bottom: 2px;
+            background-color: white;
+            transition: 0.4s;
+            border-radius: 50%;
+        }
+        input:checked + .slider-switch {
+            background-color: #4CAF50;
+        }
+        input:checked + .slider-switch:before {
+            transform: translateX(16px);
+        }
+        .footer {
+            display: flex;
+            justify-content: space-around;
+            margin-top: 20px;
+        }
+        .footer-icon {
+            font-size: 2em;
+            color: #333;
+        }
+        .center-label {
+            display: flex;
+            justify-content: center;
+            font-size: 0.9em;
+            color: #666;
+            margin-top: -10px;
+        }
+        .medium-label {
+            color: black; /* Set text color to black */
+            margin-top: 10px; /* Adjust this value to move it lower on the page */
+            font-size: 15px; /* Optional: Adjust font size as needed */
+            text-align: center; /* Optional: Center align the text */
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Timer Control -->
+    <div class="container">
+        <h2>Timer</h2>
+        <p class="description">Sets time between which the window will NOT open automatically.</p>
+        <div class="slider-container">
+            <span id="timer-start-label" class="slider-label">5:00</span>
+            <input type="range" min="0" max="24" step="1" value="5" class="slider timer-slider on-left-fill" id="timer-start" oninput="updateTimer()" style="--color: lightgreen;">
+            <input type="range" min="0" max="24" step="1" value="22" class="slider timer-slider on-right-fill" id="timer-end" oninput="updateTimer()" style="--color: lightgreen;">
+            <span id="timer-end-label" class="slider-label">22:00</span>
+        </div>
+        <div class="switch-container">
+            <span>off</span>
+            <label class="switch">
+                <input type="checkbox" checked>
+                <span class="slider-switch"></span>
+            </label>
+            <span>on</span>
+        </div>
+    </div>
+
+    <!-- Temperature Control -->
+    <div class="container">
+        <h2>Temperature</h2>
+        <p class="description">Sets allowed interval for temperature. While exceeding this interval window will NOT open </p>
+        <div class="slider-container">
+            <span class="slider-label">min</span>
+            <input type="range" min="-15" max="40" value="10" class="slider temp-slider on-right-fill" id="temperature-min" oninput="updateTemperature()" style="--color: lightblue;">
+            <input type="range" min="-15" max="40" value="30" class="slider temp-slider on-left-fill" id="temperature-max" oninput="updateTemperature()" style="--color: lightblue;">
+            <span class="slider-label">max</span>
+        </div>        
+        <div class="center-label medium-label"><span id="temp-display">10°C - 30°C</span></div>
+        <div class="switch-container">
+            <span>°C</span>
+            <label class="switch">
+                <input type="checkbox" id="temp-toggle" onchange="toggleTemperatureUnit()">
+                <span class="slider-switch"></span>
+            </label>
+            <span>°F</span>
+        </div>
+        <div class="switch-container">
+            <span>off</span>
+            <label class="switch">
+                <input type="checkbox" checked>
+                <span class="slider-switch"></span>
+            </label>
+            <span>on</span>
+        </div>
+    </div>
+
+    <!-- Noise Level Control -->
+    <div class="container">
+        <h2>Noise Level</h2>
+        <p class="description">Sets a threshold for noise level. Above this level, the window will NOT open</p>
+        <div class="slider-container">
+            <span class="slider-label">low</span>
+            <input type="range" min="0" max="2" step="1" value="1" class="slider noise-slider on-left-fill" id="noise" oninput="updateNoiseLevel()" style="--color: lightcoral;">
+            <span class="slider-label">high</span>
+        </div>
+        <div class="center-label medium-label">medium</div>
+        <div class="switch-container">
+            <span>off</span>
+            <label class="switch">
+                <input type="checkbox" checked>
+                <span class="slider-switch"></span>
+            </label>
+            <span>on</span>
+        </div>
+    </div>
+
+    <!-- Air Quality Control -->
+    <div class="container">
+        <h2>Air Quality Level</h2>
+        <p class="description">Sets a threshold for air quality level. Above this threshold, the window will NOT open</p>
+        <div class="slider-container">
+            <span class="slider-label">good</span>
+            <input type="range" min="0" max="2" step="1" value="1" class="slider airquality-slider on-left-fill" id="airquality" oninput="updateAirQuality()" style="--color: rgb(193, 193, 22);">
+            <span class="slider-label">poor</span>
+        </div>
+        <div class="center-label medium-label">moderate</div>
+        <div class="switch-container">
+            <span>off</span>
+            <label class="switch">
+                <input type="checkbox" checked>
+                <span class="slider-switch"></span>
+            </label>
+            <span>on</span>
+        </div>
+    </div>
+
+    <div class="footer">
+        <span class="footer-icon">&#8962;</span>
+        <span class="footer-icon">&#9881;</span>
+    </div>
+
+    <script>
+        function updateTimer() {
+            const start = document.getElementById("timer-start");
+            const end = document.getElementById("timer-end");
+
+            // Prevent sliders from overlapping
+            if (parseInt(start.value) >= parseInt(end.value)) {
+                start.value = end.value - 1;
+            } else if (parseInt(end.value) <= parseInt(start.value)) {
+                end.value = parseInt(start.value) + 1;
+            }
+
+            document.getElementById("timer-start-label").innerText = `${start.value}:00`;
+            document.getElementById("timer-end-label").innerText = `${end.value}:00`;
+
+            // Update left color fill for both sliders based on position
+            start.style.setProperty("--value", start.value / 24 * 100);
+            end.style.setProperty("--value", end.value / 24 * 100);
+        }
+
+
+        function updateTemperature() {
+            const tempMinSlider = document.getElementById("temperature-min");
+            const tempMaxSlider = document.getElementById("temperature-max");
+            const tempToggle = document.getElementById("temp-toggle");
+            const tempDisplay = document.getElementById("temp-display");
+
+            const isFahrenheit = tempToggle.checked;
+
+            // Ensure the min slider doesn't exceed the max slider and vice versa
+            if (parseInt(tempMinSlider.value) >= parseInt(tempMaxSlider.value)) {
+                tempMinSlider.value = tempMaxSlider.value - 1;
+            } else if (parseInt(tempMaxSlider.value) <= parseInt(tempMinSlider.value)) {
+                tempMaxSlider.value = parseInt(tempMinSlider.value) + 1;
+            }
+
+            // Convert temperatures to Fahrenheit if needed
+            const minTempValue = isFahrenheit ? (tempMinSlider.value * 9/5 + 32).toFixed(1) + '°F' : tempMinSlider.value + '°C';
+            const maxTempValue = isFahrenheit ? (tempMaxSlider.value * 9/5 + 32).toFixed(1) + '°F' : tempMaxSlider.value + '°C';
+
+            // Display the min and max temperature
+            tempDisplay.innerText = `${minTempValue} - ${maxTempValue}`;
+
+            // Set the fill value for each slider
+            const minPercentage = (tempMinSlider.value - tempMinSlider.min) / (tempMinSlider.max - tempMinSlider.min) * 100;
+            const maxPercentage = (tempMaxSlider.value - tempMaxSlider.min) / (tempMaxSlider.max - tempMaxSlider.min) * 100;
+
+            tempMinSlider.style.setProperty("--value", minPercentage);
+            tempMaxSlider.style.setProperty("--value", maxPercentage);
+        }
+
+
+        function toggleTemperatureUnit() {
+            updateTemperature();
+        }
+
+        function updateNoiseLevel() {
+            const noiseLevels = ["low", "medium", "high"];
+            const noiseSlider = document.getElementById("noise");
+            noiseSlider.style.setProperty("--value", noiseSlider.value / 2 * 100);
+        }
+
+        function updateAirQuality() {
+            const airQualitySlider = document.getElementById("airquality");
+            airQualitySlider.style.setProperty("--value", airQualitySlider.value / 2 * 100);
+        }
+    </script>
+</body>
+</html>
