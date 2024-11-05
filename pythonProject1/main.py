@@ -1,9 +1,10 @@
 import board
 import adafruit_bme280
 import RPi.GPIO as GPIO
-import adafruit_busio
-import struct
+# import adafruit_busio
+# import struct
 import time
+from pms5003 import PMS5003
 
 def getTemperature():
     """Reads a single measurement from the Adafruit BME280 sensor, and returns the temperature in C."""
@@ -21,15 +22,17 @@ def getNoiseLevel():
     return noise_detected == GPIO.HIGH
 
 def getAirQuality():
-    """Initializes UART, reads a single PM2.5 measurement from the PMS5003 sensor, and returns the concentration in µg/m³."""
-    uart = adafruit_busio.UART(board.TX, board.RX, baudrate=9600, timeout=2)
-    if uart.in_waiting >= 32:
-        data = uart.read(32)
-        if data and data[0] == 0x42 and data[1] == 0x4D:
-            frame = struct.unpack(">HHHHHHHHHHHHHH", data[2:])
-            pm2_5 = frame[3]  # PM2.5 concentration in µg/m³
-            return pm2_5
-    return None
+    pms5003 = PMS5003(device="/dev/ttyAMA0", baudrate=9600)
+    return(pms5003)
+    # """Initializes UART, reads a single PM2.5 measurement from the PMS5003 sensor, and returns the concentration in µg/m³."""
+    # uart = adafruit_busio.UART(board.TX, board.RX, baudrate=9600, timeout=2)
+    # if uart.in_waiting >= 32:
+    #     data = uart.read(32)
+    #     if data and data[0] == 0x42 and data[1] == 0x4D:
+    #         frame = struct.unpack(">HHHHHHHHHHHHHH", data[2:])
+    #         pm2_5 = frame[3]  # PM2.5 concentration in µg/m³
+    #         return pm2_5
+    # return None
 
 def set_window_angle(degree):
     """Set a servo MOT-00484 to a specified angle."""
