@@ -1,10 +1,9 @@
 import board
 import adafruit_bme280
 import RPi.GPIO as GPIO
-# import adafruit_busio
-# import struct
+import struct
 import time
-from pms5003 import PMS5003
+import serial
 
 def getTemperature():
     """Reads a single measurement from the Adafruit BME280 sensor, and returns the temperature in C."""
@@ -22,8 +21,26 @@ def getNoiseLevel():
     return noise_detected == GPIO.HIGH
 
 def getAirQuality():
-    pms5003 = PMS5003(device="/dev/ttyAMA0", baudrate=9600)
-    return(pms5003)
+    port = "/dev/serial0"  # Default UART port on Raspberry Pi
+    baudrate = 9600  # Default baud rate for the PMS5003 sensor
+
+    try:
+        # Initialize UART with specified port and baud rate
+        with serial.Serial(port, baudrate=baudrate, timeout=2) as uart:
+            # Check if there are at least 32 bytes available in the UART buffer
+            if uart.in_waiting >= 32:
+                data = uart.read(32)
+
+                # Verify the start of the frame (PMS5003 uses 0x42 and 0x4D as start bytes)
+                if data and data[0] == 0x42 and data[1] == 0x4D:
+                    # Unpack the data frame based on PMS5003 format
+                    frame = struct.unpack(">HHHHHHHHHHHHHH", data[2:])
+                    pm2_5 = frame[3]  # PM2.5 concentration in µg/m³
+                    return pm2_5
+    except serial.SerialException as e:
+        print(f"UART error: {e}")
+
+    return None
     # """Initializes UART, reads a single PM2.5 measurement from the PMS5003 sensor, and returns the concentration in µg/m³."""
     # uart = adafruit_busio.UART(board.TX, board.RX, baudrate=9600, timeout=2)
     # if uart.in_waiting >= 32:
