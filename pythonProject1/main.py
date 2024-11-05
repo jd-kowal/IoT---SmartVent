@@ -1,9 +1,10 @@
 import board
-import adafruit_bme280
+from adafruit_bme280 import basic as adafruit_bme280
 import RPi.GPIO as GPIO
 import struct
 import time
 import serial
+
 
 def getTemperature():
     """Reads a single measurement from the Adafruit BME280 sensor, and returns the temperature in C."""
