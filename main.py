@@ -29,7 +29,6 @@ def getAirQuality():
         # Initialize UART with specified port and baud rate
         with serial.Serial(port, baudrate=baudrate, timeout=2) as uart:
             # Check if there are at least 32 bytes available in the UART buffer
-            
             i = 0
             while True:
                 waiting = uart.in_waiting
@@ -69,7 +68,6 @@ def set_window_angle(degree):
         print("Invalid angle. Must be between 0 and 90.")
         return False
 
-    GPIO.setmode(GPIO.BOARD)  # Use physical pin numbering
     SERVO_PIN = 33
     GPIO.setup(SERVO_PIN, GPIO.OUT)
     pwm = GPIO.PWM(SERVO_PIN, 50)  # 50Hz frequency
