@@ -9,7 +9,7 @@ import serial
 def getTemperature():
     """Reads a single measurement from the Adafruit BME280 sensor, and returns the temperature in C."""
     i2c = board.I2C()
-    bme280 = adafruit_bme280.Adafruit_BME280_I2C(i2c)
+    bme280 = adafruit_bme280.Adafruit_BME280_I2C(i2c, address=0x76)
     temperature = bme280.temperature
     return temperature
 
@@ -86,8 +86,8 @@ def main():
     """Main function to read sensor values and control the servo."""
     try:
         # Read temperature
-        #temperature = getTemperature()
-        #print(f"Temperature: {temperature:.2f} °C")
+        temperature = getTemperature()
+        print(f"Temperature: {temperature:.2f} °C")
 
         # Read noise level
         noise_detected = getNoiseLevel()
