@@ -3,49 +3,28 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>PIN Management</title>
+    <title>SmartVent</title>
 </head>
 <body>
-    <h1>Welcome to PIN Management</h1>
+    <h1>Welcome</h1>
 
-    {% if show_set_user_pin %}
-        <h2>Set User PIN</h2>
-        <form action="{{ url_for('set_user_pin') }}" method="POST">
-            <label for="user_pin1">Enter your 4-digit PIN:</label>
-            <input type="text" id="user_pin1" name="pin1" required>
-            <label for="user_pin2">Confirm your 4-digit PIN:</label>
-            <input type="text" id="user_pin2" name="pin2" required>
-            <button type="submit">Set User PIN</button>
-        </form>
-    {% else %}
-        {% if show_user_login %}
-            <h2>User Login</h2>
-            <form action="{{ url_for('login') }}" method="POST">
-                <input type="hidden" name="role" value="user">
-                <label for="user_pin">Enter your User PIN:</label>
-                <input type="text" id="user_pin" name="pin" required>
-                <button type="submit">Login as User</button>
-            </form>
-        {% endif %}
-    {% endif %}
-
-    {% if show_set_admin_pin %}
+    {% if show_set_pin %}
         <h2>Set Admin PIN</h2>
         <form action="{{ url_for('set_admin_pin') }}" method="POST">
-            <label for="admin_pin1">Enter your 8-digit PIN:</label>
-            <input type="text" id="admin_pin1" name="pin1" required>
-            <label for="admin_pin2">Confirm your 8-digit PIN:</label>
-            <input type="text" id="admin_pin2" name="pin2" required>
+            <label for="pin1">Enter your 8-digit PIN:</label>
+            <input type="text" id="pin1" name="pin1" required>
+            <label for="pin2">Confirm your 8-digit PIN:</label>
+            <input type="text" id="pin2" name="pin2" required>
             <button type="submit">Set Admin PIN</button>
         </form>
     {% else %}
-        {% if show_admin_login %}
-            <h2>Admin Login</h2>
+        {% if show_login %}
+            <h2>Login</h2>
             <form action="{{ url_for('login') }}" method="POST">
-                <input type="hidden" name="role" value="admin">
-                <label for="admin_pin">Enter your Admin PIN:</label>
-                <input type="text" id="admin_pin" name="pin" required>
-                <button type="submit">Login as Admin</button>
+                <input type="hidden" name="role" value="user">
+                <label for="pin">Enter your PIN:</label>
+                <input type="text" id="pin" name="pin" required>
+                <button type="submit">Login</button>
             </form>
         {% endif %}
     {% endif %}
