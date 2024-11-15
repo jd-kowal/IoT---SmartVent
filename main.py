@@ -22,22 +22,32 @@ def getNoiseLevel():
     return noise_detected == GPIO.HIGH
 
 def getAirQuality():
-    port = "/dev/serial0"  # Default UART port on Raspberry Pi
+    port = "/dev/ttyS0"  # Default UART port on Raspberry Pi
     baudrate = 9600  # Default baud rate for the PMS5003 sensor
 
     try:
         # Initialize UART with specified port and baud rate
         with serial.Serial(port, baudrate=baudrate, timeout=2) as uart:
             # Check if there are at least 32 bytes available in the UART buffer
-            if uart.in_waiting >= 32:
-                data = uart.read(32)
-
-                # Verify the start of the frame (PMS5003 uses 0x42 and 0x4D as start bytes)
-                if data and data[0] == 0x42 and data[1] == 0x4D:
-                    # Unpack the data frame based on PMS5003 format
-                    frame = struct.unpack(">HHHHHHHHHHHHHH", data[2:])
-                    pm2_5 = frame[7]  # PM2.5 concentration in µg/m³
-                    return pm2_5
+            i = 0
+            while True:
+                waiting = uart.in_waiting
+                if waiting > 0:
+                    temp_a = uart.read(1)
+                    if temp_a == b'\x42':
+                        data = uart.read(31)
+                        # print(data)
+                        break
+                i += 1
+                if i >= 1000000:
+                    return None
+            data = b'\x42' + data
+            # Verify the start of the frame (PMS5003 uses 0x42 and 0x4D as start bytes)
+            if data and data[0] == 0x42 and data[1] == 0x4D:
+                # Unpack the data frame based on PMS5003 format
+                frame = struct.unpack("30B", data[2:])
+                pm2_5 = frame[3]  # PM2.5 concentration in µg/m³
+                return pm2_5
     except serial.SerialException as e:
         print(f"UART error: {e}")
 
@@ -58,7 +68,6 @@ def set_window_angle(degree):
         print("Invalid angle. Must be between 0 and 90.")
         return False
 
-    GPIO.setmode(GPIO.BOARD)  # Use physical pin numbering
     SERVO_PIN = 33
     GPIO.setup(SERVO_PIN, GPIO.OUT)
     pwm = GPIO.PWM(SERVO_PIN, 50)  # 50Hz frequency
@@ -77,8 +86,8 @@ def main():
     """Main function to read sensor values and control the servo."""
     try:
         # Read temperature
-        #temperature = getTemperature()
-        #print(f"Temperature: {temperature:.2f} °C")
+        temperature = getTemperature()
+        print(f"Temperature: {temperature:.2f} °C")
 
         # Read noise level
         noise_detected = getNoiseLevel()
