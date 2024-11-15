@@ -9,7 +9,7 @@ import serial
 def getTemperature():
     """Reads a single measurement from the Adafruit BME280 sensor, and returns the temperature in C."""
     i2c = board.I2C()
-    bme280 = adafruit_bme280.Adafruit_BME280_I2C(i2c)
+    bme280 = adafruit_bme280.Adafruit_BME280_I2C(i2c, address=0x76)
     temperature = bme280.temperature
     return temperature
 
@@ -36,7 +36,7 @@ def getAirQuality():
                 if data and data[0] == 0x42 and data[1] == 0x4D:
                     # Unpack the data frame based on PMS5003 format
                     frame = struct.unpack(">HHHHHHHHHHHHHH", data[2:])
-                    pm2_5 = frame[3]  # PM2.5 concentration in µg/m³
+                    pm2_5 = frame[7]  # PM2.5 concentration in µg/m³
                     return pm2_5
     except serial.SerialException as e:
         print(f"UART error: {e}")
