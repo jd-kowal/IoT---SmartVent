@@ -46,7 +46,7 @@ def getAirQuality():
             if data and data[0] == 0x42 and data[1] == 0x4D:
                 # Unpack the data frame based on PMS5003 format
                 frame = struct.unpack("30B", data[2:])
-                pm2_5 = frame[7]  # PM2.5 concentration in µg/m³
+                pm2_5 = (frame[11] << 8) | frame[12]  # PM2.5 concentration in µg/m³
                 return pm2_5
     except serial.SerialException as e:
         print(f"UART error: {e}")
