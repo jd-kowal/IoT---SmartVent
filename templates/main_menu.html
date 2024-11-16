@@ -64,14 +64,62 @@
 		.label {
 			font-weight: bold;
 		}
+
+		.modal {
+			position: fixed;
+			top: 0;
+			left: 0;
+			width: 100%;
+			height: 100%;
+			background: rgba(0, 0, 0, 0.5);
+			display: flex;
+			align-items: center;
+			justify-content: center;
+			z-index: 1000;
+		}
+
+		.modal.hidden {
+			display: none;
+		}
+
+		.modal-content {
+			background: white;
+			padding: 20px;
+			border-radius: 10px;
+			text-align: center;
+		}
+
+		.modal-content ul {
+			list-style: none;
+			padding: 0;
+			margin: 0;
+		}
+
+		.modal-content li {
+			margin: 10px 0;
+			padding: 10px;
+			background: #f0f0f0;
+			cursor: pointer;
+			border-radius: 5px;
+			transition: background 0.3s;
+		}
+
+		.modal-content li:hover {
+			background: #e0e0e0;
+		}
+
 	</style>
 </head>
 
 <body>
 	<div class="container">
 		<div class="window-status">
-			<img src="{{ url_for('static', filename='assets/window_closed.webp') }}"alt="window is CLOSED" class="window-image">
-			<p class="center-label bigger">CLOSED</p>
+			<img 
+				src="{{ url_for('static', filename='assets/window_closed.webp') }}" 
+				alt="window is CLOSED" 
+				class="window-image" 
+				id="windowImage">
+			<p class="center-label bigger" id="windowStatus">CLOSED</p>
 		</div>
 		<div class="gauges">
 			<div class="gauge">
@@ -105,6 +153,21 @@
 		<div class="footer">
 			<span class="footer-icon">&#8962;</span>
 			<span class="footer-icon">&#9881;</span>
+		</div>
+	</div>
+
+	<div id="windowModal" class="modal hidden">
+		<div class="modal-content">
+			<h3>Close the window for:</h3>
+			<ul>
+				<li data-duration="15">15 mins</li>
+				<li data-duration="30">30 mins</li>
+				<li data-duration="60">1 hour</li>
+				<li data-duration="180">3 hours</li>
+				<li data-duration="480">8 hours</li>
+				<li data-duration="1440">24 hours</li>
+				<li data-duration="9999">Until I open it manually</li>
+			</ul>
 		</div>
 	</div>
 
@@ -265,6 +328,86 @@
 			}
 			return getComputedStyle(document.documentElement).getPropertyValue('--err');
 		}
+
+		
+		const windowImage = document.getElementById('windowImage');
+		const windowStatus = document.getElementById('windowStatus');
+		const windowModal = document.getElementById('windowModal');
+		const modalContent = windowModal.querySelector('.modal-content');
+		function draw_window_modal() {
+			return new Promise((resolve) => {
+				windowModal.classList.remove('hidden');
+
+				windowModal.addEventListener('click', function handleModalClick(event) {
+					const target = event.target;
+
+					if (target.tagName === 'LI') {
+						const duration = parseInt(target.dataset.duration, 10);
+						resolve([false, duration]);
+						windowModal.classList.add('hidden');
+						windowModal.removeEventListener('click', handleModalClick);
+					} else if (!modalContent.contains(event.target)) { // Clicked outisde the modal
+						resolve([true, 0]);
+						windowModal.classList.add('hidden');
+						windowModal.removeEventListener('click', handleModalClick);
+					}
+				});
+			});
+		}
+
+		function toggleWindowState(newState) {
+			fetch('/setWindowStateToggle', {
+				method: 'POST',
+				headers: {
+					'Content-Type': 'application/json',
+				},
+				body: JSON.stringify({ window_state_toggle: newState }),
+			})
+			.then((response) => {
+				if (!response.ok) {
+					throw new Error(`HTTP error! status: ${response.status}`);
+				}
+			})
+			.catch((error) => {
+				console.error('Error toggling window state:', error);
+			});
+		}
+		function setWindowStateTimer(time) {
+			fetch('/setWindowStateTimer', {
+				method: 'POST',
+				headers: {
+					'Content-Type': 'application/json',
+				},
+				body: JSON.stringify({ window_state_timer: time }),
+			})
+			.then((response) => {
+				if (!response.ok) {
+					throw new Error(`HTTP error! status: ${response.status}`);
+				}
+			})
+			.catch((error) => {
+				console.error('Error setting window timer:', error);
+			});
+		}
+
+		windowImage.addEventListener('click', async () => {
+			if (windowStatus.textContent.trim().toUpperCase() === 'CLOSED') {
+				toggleWindowState(true);
+				windowImage.src = "{{ url_for('static', filename='assets/window_opened.webp') }}";
+				windowImage.alt = "window is OPENED";
+				windowStatus.textContent = "OPENED";
+			} else {
+				const [isOutside, duration] = await draw_window_modal();
+				if (!isOutside){
+					setWindowStateTimer(duration)
+					windowImage.src = "{{ url_for('static', filename='assets/window_closed.webp') }}";
+					windowImage.alt = "window is CLOSED";
+					windowStatus.textContent = "CLOSED";
+				}
+			}
+		});
+
+
 
         window.onload = function() {
 			fetchTemperature();
