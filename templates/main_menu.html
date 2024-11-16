@@ -1,0 +1,276 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Window Interface</title>
+	<link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
+
+	<style>
+		.window-image {
+			width: 200px;
+			height: auto;
+			display: block;
+			margin: 0 auto;
+			margin-bottom: 25px;
+		}
+
+		.gauges {
+			display: flex;
+			justify-content: space-around;
+			margin: 20px 0;
+		}
+
+		.gauge {
+			text-align: center;
+		}
+
+		.circle {
+			width: 80px;
+			height: 80px;
+			border-radius: 50%;
+			display: flex;
+			justify-content: center;
+			align-items: center;
+			margin: 10px auto;
+			position: relative;
+			color: black;
+			border: 4px solid black;
+			transition: border 1.3s ease;
+		}
+
+		.circle .value {
+			font-size: 1em;
+			color: black;
+		}
+
+		.arrow-icon {
+			display: flex;
+			justify-content: space-around;
+			margin-top: 20px;
+			font-size: 70px;
+			text-align: center;
+			animation: moveArrow 1s infinite alternate;
+		}
+		@keyframes moveArrow {
+			0% {
+				transform: translateY(0);
+			}
+			100% {
+				transform: translateY(20px);
+			}
+		}
+
+		.label {
+			font-weight: bold;
+		}
+	</style>
+</head>
+
+<body>
+	<div class="container">
+		<div class="window-status">
+			<img src="{{ url_for('static', filename='assets/window_closed.webp') }}"alt="window is CLOSED" class="window-image">
+			<p class="center-label bigger">CLOSED</p>
+		</div>
+		<div class="gauges">
+			<div class="gauge">
+				<p class="label">TEMP</p>
+				<div class="circle" id="tempCircle">
+					<p class="value">
+						<span id="temperature">Loading...</span>°C
+					</p>
+				</div>
+			</div>
+			<div class="gauge">
+				<p class="label">AIR QUALITY</p>
+				<div class="circle" id="airQualityCircle">
+					<p class="value">
+						<span id="air_quality">Loading...</span>
+					</p>
+				</div>
+			</div>
+			<div class="gauge">
+				<p class="label">NOISE LEVEL</p>
+				<div class="circle" id="noiseLevelCircle">
+					<p class="value">
+						<span id="noise_level">Loading...</span>
+					</p>
+				</div>
+			</div>
+		</div>
+
+		<div class="arrow-icon">&#x2B07;</div>
+
+		<div class="footer">
+			<span class="footer-icon">&#8962;</span>
+			<span class="footer-icon">&#9881;</span>
+		</div>
+	</div>
+
+	<script>
+
+        function fetchTemperature() {
+            fetch('/getTemperature')
+                .then(response => response.json())
+                .then(data => {
+					let temp = data.temperature
+					const color = getTemperatureColor(temp);
+					console.log('Output Color:', color);
+                    document.getElementById('tempCircle').style.borderColor = color;
+                    document.getElementById('temperature').textContent = temp;
+                })
+                .catch(error => {
+					let color;
+					color = getComputedStyle(document.documentElement).getPropertyValue('--err');
+                    document.getElementById('tempCircle').style.borderColor = color;
+					document.getElementById('temperature').textContent = "err ";
+                    console.error('Error fetching temperature:', error);
+                });
+        }
+        function fetchAirQuality() {
+            fetch('/getAirQuality')
+                .then(response => response.json())
+                .then(data => {
+					const airQuality = data.air_quality;
+					let color;
+
+					let smiley = '';
+					if (airQuality === 'good') {
+						smiley = '😊';
+						color = getComputedStyle(document.documentElement).getPropertyValue('--poorQuality');
+					} else if (airQuality === 'moderate') {
+						smiley = '😐';
+						color = getComputedStyle(document.documentElement).getPropertyValue('--moderateQuality');
+					} else if (airQuality === 'poor') {
+						smiley = '😷';
+						color = getComputedStyle(document.documentElement).getPropertyValue('--goodQuality');
+					} else {
+						smiley = '❓';
+						color = getComputedStyle(document.documentElement).getPropertyValue('--err');
+					}
+
+					document.getElementById('airQualityCircle').style.borderColor = color;
+					document.getElementById('air_quality').textContent = smiley;
+                })
+                .catch(error => {
+					let color;
+					color = getComputedStyle(document.documentElement).getPropertyValue('--err');
+                    document.getElementById('airQualityCircle').style.borderColor = color;
+                    document.getElementById('air_quality').textContent = "err ";
+                    console.error('Error fetching air quality:', error);
+                });
+        }
+        function fetchNoiseLevel() {
+            fetch('/getNoiseLevel')
+                .then(response => response.json())
+                .then(data => {
+					const airQuality = data.noise_level;
+					let color;
+
+					let smiley = '';
+					if (airQuality === 'low') {
+						smiley = '😊';
+						color = getComputedStyle(document.documentElement).getPropertyValue('--poorQuality');
+					} else if (airQuality === 'medium') {
+						smiley = '😐';
+						color = getComputedStyle(document.documentElement).getPropertyValue('--moderateQuality');
+					} else if (airQuality === 'high') {
+						smiley = '😣';
+						color = getComputedStyle(document.documentElement).getPropertyValue('--goodQuality');
+					} else {
+						smiley = '❓';
+						color = getComputedStyle(document.documentElement).getPropertyValue('--err');
+					}
+
+					document.getElementById('noiseLevelCircle').style.borderColor = `4px solid ${color}`;
+					document.getElementById('noise_level').textContent = smiley;
+                })
+                .catch(error => {
+					let color;
+					color = getComputedStyle(document.documentElement).getPropertyValue('--err');
+                    document.getElementById('noiseLevelCircle').style.borderColor = color;
+					document.getElementById('noise_level').textContent = "err ";
+                    console.error('Error fetching noise level:', error);
+                });
+        }
+
+		function getTemperatureColor(temperature) {
+			const keypoints = [
+				{ temp: -100, color: getComputedStyle(document.documentElement).getPropertyValue('--youdeadTemp').trim() },
+				{ temp: -40, color: getComputedStyle(document.documentElement).getPropertyValue('--youdeadTemp').trim() },
+				{ temp: -10, color: getComputedStyle(document.documentElement).getPropertyValue('--veryLowTemp').trim() },
+				{ temp: 10, color: getComputedStyle(document.documentElement).getPropertyValue('--coldTemp').trim() },
+				{ temp: 20, color: getComputedStyle(document.documentElement).getPropertyValue('--moderateTemp').trim() },
+				{ temp: 30, color: getComputedStyle(document.documentElement).getPropertyValue('--highTemp').trim() },
+				{ temp: 100, color: getComputedStyle(document.documentElement).getPropertyValue('--veryHighTemp').trim() },
+			];
+
+			function interpolateColor(temp1, temp2, temp, color1, color2) {
+				const c1 = hexToRgb(color1);
+				const c2 = hexToRgb(color2);
+
+				if (!c1 || !c2) {
+					console.error('Invalid RGB values:', c1, c2);
+					return 'rgb(0,0,0)';
+				}
+
+				if (temp === temp1) {
+					return color1
+				}
+
+				if (temp === temp2) {
+					return color2
+				}
+
+				const ratio = (temp - temp1) / (temp2 - temp1);
+
+				const r = Math.round(c1.r + ratio * (c2.r - c1.r));
+				const g = Math.round(c1.g + ratio * (c2.g - c1.g));
+				const b = Math.round(c1.b + ratio * (c2.b - c1.b));
+
+				return `rgb(${r},${g},${b})`;
+			}
+
+			function hexToRgb(hex) {
+				hex = hex.replace('#', '');
+
+				if (hex.length === 6) {
+					const r = parseInt(hex.substring(0, 2), 16);
+					const g = parseInt(hex.substring(2, 4), 16);
+					const b = parseInt(hex.substring(4, 6), 16);
+					return { r, g, b };
+				} else {
+					console.error('Invalid hex color format:', hex);
+					return null;
+				}
+			}
+
+			let lowerKeypoint = null;
+			let higherKeypoint = null;
+
+			for (let i = 0; i < keypoints.length - 1; i++) {
+				if (temperature >= keypoints[i].temp && temperature < keypoints[i + 1].temp) {
+					lowerKeypoint = keypoints[i];
+					higherKeypoint = keypoints[i + 1];
+					break;
+				}
+			}
+
+			if (temperature <= keypoints[0].temp) return keypoints[0].color;
+			if (temperature >= keypoints[keypoints.length - 1].temp) return keypoints[keypoints.length - 1].color;
+
+			if (lowerKeypoint && higherKeypoint) {
+				return interpolateColor(lowerKeypoint.temp, higherKeypoint.temp, temperature, lowerKeypoint.color, higherKeypoint.color);
+			}
+			return getComputedStyle(document.documentElement).getPropertyValue('--err');
+		}
+
+        window.onload = function() {
+			fetchTemperature();
+			fetchAirQuality();
+			fetchNoiseLevel();
+		};
+	</script>
+</body>
+</html>
