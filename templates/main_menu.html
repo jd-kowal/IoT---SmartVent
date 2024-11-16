@@ -36,7 +36,7 @@
 			position: relative;
 			color: black;
 			border: 4px solid black;
-			transition: border 1.3s ease;
+			transition: border 2.0s ease;
 		}
 
 		.circle .value {
@@ -171,13 +171,13 @@
 					let smiley = '';
 					if (airQuality === 'low') {
 						smiley = '😊';
-						color = getComputedStyle(document.documentElement).getPropertyValue('--poorQuality');
+						color = getComputedStyle(document.documentElement).getPropertyValue('--goodQuality');
 					} else if (airQuality === 'medium') {
 						smiley = '😐';
 						color = getComputedStyle(document.documentElement).getPropertyValue('--moderateQuality');
 					} else if (airQuality === 'high') {
 						smiley = '😣';
-						color = getComputedStyle(document.documentElement).getPropertyValue('--goodQuality');
+						color = getComputedStyle(document.documentElement).getPropertyValue('--poorQuality');
 					} else {
 						smiley = '❓';
 						color = getComputedStyle(document.documentElement).getPropertyValue('--err');

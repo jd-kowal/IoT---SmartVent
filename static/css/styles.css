@@ -1,6 +1,6 @@
 :root { /* Tutaj dodawaj globalne custom kolory */
     --poorQuality: #F08080;  /* Twoj czerwony z NoiseLevel */
-    --moderateQaulity: rgb(193, 193, 22); /* Twoj zoltawy z Air Quality */
+    --moderateQuality: rgb(193, 193, 22); /* Twoj zoltawy z Air Quality */
     --goodQuality: #90EE90; /* Twoj zielony z suwakow */
     --err: #8B0000; /* Kolor dla erroru idk, na razie  ciemny red*/
 	
