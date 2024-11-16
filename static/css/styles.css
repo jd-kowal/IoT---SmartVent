@@ -150,15 +150,6 @@ input:checked + .slider-switch {
 input:checked + .slider-switch:before {
 	transform: translateX(16px);
 }
-.footer {
-	display: flex;
-	justify-content: space-around;
-	margin-top: 20px;
-}
-.footer-icon {
-	font-size: 2em;
-	color: #333;
-}
 .center-label {
 	display: flex;
 	justify-content: center;
@@ -175,4 +166,33 @@ input:checked + .slider-switch:before {
 	margin-top: 10px; /* Adjust this value to move it lower on the page */
 	font-size: 15px; /* Optional: Adjust font size as needed */
 	text-align: center; /* Optional: Center align the text */
+}
+.container {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+}
+
+.footer {
+    display: flex;
+    height: 50px;
+    background-color: #f8f8f8;
+    margin-top: auto;
+}
+
+.footer-section {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+}
+
+.footer-icon {
+    font-size: 24px;
+    color: #333;
+}
+
+.footer-section:hover {
+    background-color: #e0e0e0;
 }

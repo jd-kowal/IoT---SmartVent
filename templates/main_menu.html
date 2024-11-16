@@ -151,8 +151,12 @@
 		<div class="arrow-icon">&#x2B07;</div>
 
 		<div class="footer">
-			<span class="footer-icon">&#8962;</span>
-			<span class="footer-icon">&#9881;</span>
+			<div class="footer-section" id="home-section">
+				<span class="footer-icon">&#8962;</span>
+			</div>
+			<div class="footer-section" id="settings-section">
+				<span class="footer-icon">&#9881;</span>
+			</div>
 		</div>
 	</div>
 
@@ -407,7 +411,13 @@
 			}
 		});
 
+		document.getElementById('home-section').addEventListener('click', () => {
+			window.location.href = '/';
+		});
 
+		document.getElementById('settings-section').addEventListener('click', () => {
+			window.location.href = '/settingsUser';
+		});
 
         window.onload = function() {
 			fetchTemperature();
