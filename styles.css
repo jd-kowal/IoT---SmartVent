@@ -9,6 +9,8 @@ body {
 	flex-direction: column;
 	align-items: center;
 	color: #333;
+	min-height: 100vh;
+	height: auto;
 }
 .container {
 	width: 90%;
