@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>IoT Control Panel</title>
-	<link rel="stylesheet" href="styles.css">
+	<link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
 </head>
 <body>
 
@@ -37,7 +37,7 @@
             <input type="range" min="-15" max="40" value="10" class="slider temp-slider on-right-fill" id="temperature-min" oninput="updateTemperature()" style="--color: lightblue;">
             <input type="range" min="-15" max="40" value="30" class="slider temp-slider on-left-fill" id="temperature-max" oninput="updateTemperature()" style="--color: lightblue;">
             <span class="slider-label">max</span>
-        </div>        
+        </div>
         <div class="center-label medium-label"><span id="temp-display">10°C - 30°C</span></div>
         <div class="switch-container">
             <span>°C</span>

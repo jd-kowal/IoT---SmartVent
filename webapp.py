@@ -148,6 +148,21 @@ def login():
     return 'Invalid PIN', 403
 
 
+@app.route('/settingsUser', methods=['GET'])
+def settings():
+
+    return render_template(
+        'settings_user.html'
+    )
+
+@app.route('/mainMenu', methods=['GET'])
+def menu():
+
+    return render_template(
+        'main_menu.html'
+    )
+
+
 @app.route('/userDashboard', methods=['GET'])
 @user_required
 def user_dashboard():

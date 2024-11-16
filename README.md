@@ -1,12 +1,15 @@
 # IoT---SmartVent
 
+# Currently you can see UI on http://localhost:5000/settingsUser and http://localhost:5000/mainMenu
+
+
 Run with:
 ```bash
 python -m venv env
 source env/bin/activate
 pip install -r requirements.txt
 
-FLASK_APP=app.py
+FLASK_APP=webapp.py
 FLASK_ENV=development
 flask run
 ```
