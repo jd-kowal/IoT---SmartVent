@@ -4,19 +4,76 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>SmartVent</title>
+    <script>
+        async function submitPin(event, role) {
+            event.preventDefault();
+
+            const pin1 = document.getElementById('pin1').value;
+            const pin2 = document.getElementById('pin2').value;
+
+            let url;
+            if (role === 'user') {
+                url = "{{ url_for('set_user_pin') }}";
+            } else if (role === 'admin') {
+                url = "{{ url_for('set_admin_pin') }}";
+            } else {
+                alert("Invalid role specified.");
+                return;
+            }
+            console.log(JSON.stringify({ pin1, pin2 }))
+
+            if (!pin1 || !pin2) {
+                alert("Both PINs are required.");
+                return;
+            }
+
+            try {
+                const response = await fetch(url, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ pin1, pin2 }),
+                });
+
+                if (response.ok) {
+                    console.log("User PIN successfully set.");
+                    window.location.reload();
+                } else {
+                    const errorData = await response.json();
+                    alert(`Error: ${errorData.error}`);
+                }
+            } catch (error) {
+                console.error("Error sending request:", error);
+                alert("An error occurred while setting the PIN.");
+            }
+        }
+    </script>
 </head>
 <body>
     <h1>Welcome</h1>
 
     {% if show_set_pin %}
         <h2>Set Admin PIN</h2>
-        <form action="{{ url_for('set_admin_pin') }}" method="POST">
+        <form id="adminPinForm" onsubmit="submitPin(event, 'admin')">
             <label for="pin1">Enter your 8-digit PIN:</label>
             <input type="text" id="pin1" name="pin1" required>
             <label for="pin2">Confirm your 8-digit PIN:</label>
             <input type="text" id="pin2" name="pin2" required>
             <button type="submit">Set Admin PIN</button>
         </form>
+    {% elif create_user %}
+        <h2>Create user pin</h2>
+        <form id="userPinForm" onsubmit="submitPin(event, 'user')">
+            <label for="pin1">Enter your 4-digit PIN:</label>
+            <input type="text" id="pin1" name="pin1" required>
+            <label for="pin2">Confirm your 4-digit PIN:</label>
+            <input type="text" id="pin2" name="pin2" required>
+            <button type="submit">Set User PIN</button>
+        </form>
+    {% elif define_maps %}
+        <h2>Current Air Quality Map</h2>
+        <pre>{{ air_quality_map | tojson }}</pre>
     {% else %}
         {% if show_login %}
             <h2>Login</h2>
