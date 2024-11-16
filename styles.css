@@ -1,3 +1,16 @@
+:root { /* Tutaj dodawaj globalne custom kolory */
+    --poorQuality: #F08080;  /* Twoj czerwony z NoiseLevel */
+    --moderateQaulity: rgb(193, 193, 22); /* Twoj zoltawy z Air Quality */
+    --goodQuality: #90EE90; /* Twoj zielony z suwakow */
+    --err: #8B0000; /* Kolor dla erroru idk, na razie  ciemny red*/
+	
+    --youdeadTemp: #D7D7FF;
+    --veryLowTemp: #00FFFF;
+    --coldTemp: #0000FF;
+    --moderateTemp: #00FF7F;
+    --highTemp: #FFFF00;
+    --veryHighTemp: #FF0000;
+}
 * {
 	box-sizing: border-box;
 	font-family: Arial, sans-serif;
@@ -152,6 +165,10 @@ input:checked + .slider-switch:before {
 	font-size: 0.9em;
 	color: #666;
 	margin-top: -10px;
+}
+.center-label.bigger {
+	font-size: 1.5em;
+	font-weight: bold;
 }
 .medium-label {
 	color: black; /* Set text color to black */
