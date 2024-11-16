@@ -183,7 +183,7 @@
 						color = getComputedStyle(document.documentElement).getPropertyValue('--err');
 					}
 
-					document.getElementById('noiseLevelCircle').style.borderColor = `4px solid ${color}`;
+					document.getElementById('noiseLevelCircle').style.borderColor = color;
 					document.getElementById('noise_level').textContent = smiley;
                 })
                 .catch(error => {
