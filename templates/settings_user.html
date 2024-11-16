@@ -97,9 +97,15 @@
         </div>
     </div>
 
-    <div class="footer">
-        <span class="footer-icon">&#8962;</span>
-        <span class="footer-icon">&#9881;</span>
+    <div class="container">
+        <div class="footer">
+            <div class="footer-section" id="home-section">
+                <span class="footer-icon">&#8962;</span>
+            </div>
+            <div class="footer-section" id="settings-section">
+                <span class="footer-icon">&#9881;</span>
+            </div>
+        </div>
     </div>
 
     <script>
@@ -168,6 +174,21 @@
             const airQualitySlider = document.getElementById("airquality");
             airQualitySlider.style.setProperty("--value", airQualitySlider.value / 2 * 100);
         }
+
+		document.getElementById('home-section').addEventListener('click', () => {
+			window.location.href = '/mainMenu';
+		});
+
+		document.getElementById('settings-section').addEventListener('click', () => {
+			window.location.href = '/settingsUser';
+		});
+        
+        window.onload = function() {
+			updateTemperature();
+            updateTimer();
+            updateNoiseLevel();
+            updateAirQuality();
+		};
     </script>
 </body>
 </html>

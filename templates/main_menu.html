@@ -151,8 +151,12 @@
 		<div class="arrow-icon">&#x2B07;</div>
 
 		<div class="footer">
-			<span class="footer-icon">&#8962;</span>
-			<span class="footer-icon">&#9881;</span>
+			<div class="footer-section" id="home-section">
+				<span class="footer-icon">&#8962;</span>
+			</div>
+			<div class="footer-section" id="settings-section">
+				<span class="footer-icon">&#9881;</span>
+			</div>
 		</div>
 	</div>
 
@@ -172,88 +176,99 @@
 	</div>
 
 	<script>
-
+		function refreshTemp(temp) {
+			const color = getTemperatureColor(temp);
+			document.getElementById('tempCircle').style.borderColor = color;
+			document.getElementById('temperature').textContent = temp;
+		}
         function fetchTemperature() {
             fetch('/getTemperature')
                 .then(response => response.json())
                 .then(data => {
 					let temp = data.temperature
-					const color = getTemperatureColor(temp);
-					console.log('Output Color:', color);
-                    document.getElementById('tempCircle').style.borderColor = color;
-                    document.getElementById('temperature').textContent = temp;
+					refreshTemp(temp)
+					localStorage.setItem('temp', temp);
                 })
                 .catch(error => {
 					let color;
 					color = getComputedStyle(document.documentElement).getPropertyValue('--err');
                     document.getElementById('tempCircle').style.borderColor = color;
 					document.getElementById('temperature').textContent = "err ";
+					localStorage.setItem('temp', "err");
                     console.error('Error fetching temperature:', error);
                 });
         }
+		function refreshAirQuality(airQuality) {
+			let color;
+			let smiley = '';
+			if (airQuality === 'good') {
+				smiley = '😊';
+				color = getComputedStyle(document.documentElement).getPropertyValue('--poorQuality');
+			} else if (airQuality === 'moderate') {
+				smiley = '😐';
+				color = getComputedStyle(document.documentElement).getPropertyValue('--moderateQuality');
+			} else if (airQuality === 'poor') {
+				smiley = '😷';
+				color = getComputedStyle(document.documentElement).getPropertyValue('--goodQuality');
+			} else {
+				smiley = '❓';
+				color = getComputedStyle(document.documentElement).getPropertyValue('--err');
+			}
+
+			document.getElementById('airQualityCircle').style.borderColor = color;
+			document.getElementById('air_quality').textContent = smiley;
+		}
         function fetchAirQuality() {
             fetch('/getAirQuality')
                 .then(response => response.json())
                 .then(data => {
 					const airQuality = data.air_quality;
-					let color;
-
-					let smiley = '';
-					if (airQuality === 'good') {
-						smiley = '😊';
-						color = getComputedStyle(document.documentElement).getPropertyValue('--poorQuality');
-					} else if (airQuality === 'moderate') {
-						smiley = '😐';
-						color = getComputedStyle(document.documentElement).getPropertyValue('--moderateQuality');
-					} else if (airQuality === 'poor') {
-						smiley = '😷';
-						color = getComputedStyle(document.documentElement).getPropertyValue('--goodQuality');
-					} else {
-						smiley = '❓';
-						color = getComputedStyle(document.documentElement).getPropertyValue('--err');
-					}
-
-					document.getElementById('airQualityCircle').style.borderColor = color;
-					document.getElementById('air_quality').textContent = smiley;
+					refreshAirQuality(airQuality);
+					localStorage.setItem('air_quality', airQuality);
                 })
                 .catch(error => {
 					let color;
 					color = getComputedStyle(document.documentElement).getPropertyValue('--err');
                     document.getElementById('airQualityCircle').style.borderColor = color;
                     document.getElementById('air_quality').textContent = "err ";
+					localStorage.setItem('air_quality', "err");
                     console.error('Error fetching air quality:', error);
                 });
         }
+		function refreshNoiseLevel(noise_level) {
+			let color;
+			let smiley = '';
+			if (noise_level === 'low') {
+				smiley = '😊';
+				color = getComputedStyle(document.documentElement).getPropertyValue('--goodQuality');
+			} else if (noise_level === 'medium') {
+				smiley = '😐';
+				color = getComputedStyle(document.documentElement).getPropertyValue('--moderateQuality');
+			} else if (noise_level === 'high') {
+				smiley = '😣';
+				color = getComputedStyle(document.documentElement).getPropertyValue('--poorQuality');
+			} else {
+				smiley = '❓';
+				color = getComputedStyle(document.documentElement).getPropertyValue('--err');
+			}
+
+			document.getElementById('noiseLevelCircle').style.borderColor = color;
+			document.getElementById('noise_level').textContent = smiley;
+		}
         function fetchNoiseLevel() {
             fetch('/getNoiseLevel')
                 .then(response => response.json())
                 .then(data => {
-					const airQuality = data.noise_level;
-					let color;
-
-					let smiley = '';
-					if (airQuality === 'low') {
-						smiley = '😊';
-						color = getComputedStyle(document.documentElement).getPropertyValue('--goodQuality');
-					} else if (airQuality === 'medium') {
-						smiley = '😐';
-						color = getComputedStyle(document.documentElement).getPropertyValue('--moderateQuality');
-					} else if (airQuality === 'high') {
-						smiley = '😣';
-						color = getComputedStyle(document.documentElement).getPropertyValue('--poorQuality');
-					} else {
-						smiley = '❓';
-						color = getComputedStyle(document.documentElement).getPropertyValue('--err');
-					}
-
-					document.getElementById('noiseLevelCircle').style.borderColor = color;
-					document.getElementById('noise_level').textContent = smiley;
+					const noise_level = data.noise_level;
+					refreshNoiseLevel(noise_level);
+					localStorage.setItem('noise_level', noise_level);
                 })
                 .catch(error => {
 					let color;
 					color = getComputedStyle(document.documentElement).getPropertyValue('--err');
                     document.getElementById('noiseLevelCircle').style.borderColor = color;
 					document.getElementById('noise_level').textContent = "err ";
+					localStorage.setItem('noise_level', "err");
                     console.error('Error fetching noise level:', error);
                 });
         }
@@ -389,27 +404,49 @@
 				console.error('Error setting window timer:', error);
 			});
 		}
-
-		windowImage.addEventListener('click', async () => {
-			if (windowStatus.textContent.trim().toUpperCase() === 'CLOSED') {
-				toggleWindowState(true);
+		function refreshWindowState(state) {
+			if(state){
 				windowImage.src = "{{ url_for('static', filename='assets/window_opened.webp') }}";
 				windowImage.alt = "window is OPENED";
 				windowStatus.textContent = "OPENED";
+			}else{
+				windowImage.src = "{{ url_for('static', filename='assets/window_closed.webp') }}";
+				windowImage.alt = "window is CLOSED";
+				windowStatus.textContent = "CLOSED";
+			}
+		}
+		windowImage.addEventListener('click', async () => {
+			if (windowStatus.textContent.trim().toUpperCase() === 'CLOSED') {
+				toggleWindowState(true);
+				refreshWindowState(true);
+				localStorage.setItem('isWindowOpen', "true");
 			} else {
 				const [isOutside, duration] = await draw_window_modal();
 				if (!isOutside){
-					setWindowStateTimer(duration)
-					windowImage.src = "{{ url_for('static', filename='assets/window_closed.webp') }}";
-					windowImage.alt = "window is CLOSED";
-					windowStatus.textContent = "CLOSED";
+					setWindowStateTimer(duration);
+					refreshWindowState(false);
+					localStorage.setItem('isWindowOpen', "false");
 				}
 			}
 		});
 
+		document.getElementById('home-section').addEventListener('click', () => {
+			window.location.href = '/';
+		});
 
+		document.getElementById('settings-section').addEventListener('click', () => {
+			window.location.href = '/settingsUser';
+		});
 
         window.onload = function() {
+			const loadedTemp = parseFloat(localStorage.getItem('temp'));
+			if(loadedTemp != "err") refreshTemp(loadedTemp);
+			const loadedAirQuality = localStorage.getItem('air_quality');
+			if(loadedTemp != "err") refreshAirQuality(loadedAirQuality);
+			const loadedNoise = localStorage.getItem('noise_level');
+			if(loadedTemp != "err") refreshNoiseLevel(loadedNoise);
+			const loadedWindowState = localStorage.getItem('isWindowOpen') === 'true';
+			refreshWindowState(loadedWindowState);
 			fetchTemperature();
 			fetchAirQuality();
 			fetchNoiseLevel();
