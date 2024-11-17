@@ -6,6 +6,12 @@
     <title>SmartVent</title>
 	<link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
     <style>
+        .center-label.pins {
+            font-size: 1.5em;
+            font-weight: bold;
+            margin-top: 10px;
+        }
+
         .pin-container {
             margin: 2px auto;
             width: 150px;
@@ -40,11 +46,52 @@
         .pin-container.shake {
             animation: shake 0.5s;
         }
+
+
+
+        .pin-container-admin {
+            margin: 2px auto;
+            width: 300px;
+            display: flex;
+            justify-content: space-between;
+            cursor: pointer;
+        }
+
+        .dotAdmin {
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            background-color: #ccc;
+        }
+
+        .dotAdmin.filled {
+            background-color: #200008;
+        }
+
+        #visible-input-admin {
+            position: absolute;
+            opacity: 0;
+            z-index: -1;
+        }
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            25% { transform: translateX(-5px); }
+            50% { transform: translateX(5px); }
+            75% { transform: translateX(-5px); }
+        }
+
+        .pin-container-admin.shake {
+            animation: shake 0.5s;
+        }
+
+        #admin-login {
+            display: none;
+        }
     </style>
 </head>
 <body>
 	<div class="container">
-        <p class="center-label bigger">Welcome</p>
+        <p class="center-label bigger" id="ClickableSecret">Welcome</p>
 
         {% if show_set_pin %}
             <h2>Set Admin PIN</h2>
@@ -57,7 +104,7 @@
             </form>
         {% else %}
             {% if show_login %}
-            <p class="center-label bigger">Insert Pin</p>
+                <p class="center-label pins">Insert Pin</p>
                 <div class="pin-container" onclick="focusInput()">
                     <div class="dot" id="dot1"></div>
                     <div class="dot" id="dot2"></div>
@@ -72,6 +119,29 @@
                     inputmode="numeric"
                     pattern="[0-9]*"
                     required>
+                
+
+                <div id="admin-login">
+                    <p class="center-label pins">Insert Admin Pin</p>
+                    <div class="pin-container-admin" onclick="focusInputAdmin()">
+                        <div class="dotAdmin" id="adminDot1"></div>
+                        <div class="dotAdmin" id="adminDot2"></div>
+                        <div class="dotAdmin" id="adminDot3"></div>
+                        <div class="dotAdmin" id="adminDot4"></div>
+                        <div class="dotAdmin" id="adminDot5"></div>
+                        <div class="dotAdmin" id="adminDot6"></div>
+                        <div class="dotAdmin" id="adminDot7"></div>
+                        <div class="dotAdmin" id="adminDot8"></div>
+                    </div>
+            
+                    <input 
+                        type="password" 
+                        id="visible-input-admin" 
+                        maxlength="8" 
+                        inputmode="numeric"
+                        pattern="[0-9]*"
+                        required>
+                </div>
             {% endif %}
         {% endif %}
     </div>
@@ -100,12 +170,50 @@
 
             if (value.length === 4) {
                 console.log(`Login attempt: ${value}`);
-                attemptLogin(value)
+                attemptLogin(value, false)
             }
         });
 
 
-		function attemptLogin(pin) {
+
+        // AMDIN:
+
+        
+        const visibleInputAdmin = document.getElementById('visible-input-admin');
+        const dotsAdmin = Array.from(document.querySelectorAll('.dotAdmin'));
+        let clickCount = 0;
+
+        function focusInputAdmin() {
+            visibleInputAdmin.focus();
+        }
+
+        document.getElementById('ClickableSecret').addEventListener('click', function () {
+            clickCount++;
+            if (clickCount >= 5) {
+                document.getElementById('admin-login').style.display = 'block';
+                focusInputAdmin();
+            }
+        });
+
+        visibleInputAdmin.addEventListener('input', (event) => {
+            console.log(visibleInputAdmin.value);
+            const value = visibleInputAdmin.value.replace(/[^0-9]/g, '').slice(0, 8);
+            visibleInputAdmin.value = value;
+
+            dotsAdmin.forEach((dotsAdmin, index) => {
+                dotsAdmin.classList.toggle('filled', index < value.length);
+            });
+
+            if (value.length === 8) {
+                console.log(`Login attempt: ${value}`);
+                attemptLogin(value,true)
+            }
+        });
+
+
+        //LOGIN
+        
+		function attemptLogin(pin, isAdmin) {
 			fetch('/login', {
 				method: 'POST',
 				headers: {
@@ -124,12 +232,21 @@
 			})
 			.catch((error) => {
 				console.error('Error loggin in:', error);
-                visibleInput.value = '';
-                dots.forEach(dot => dot.classList.remove('filled'));
+                if(!isAdmin){
+                    visibleInput.value = '';
+                    dots.forEach(dot => dot.classList.remove('filled'));
 
-                const pinContainer = document.querySelector('.pin-container');
-                pinContainer.classList.add('shake');
-                setTimeout(() => pinContainer.classList.remove('shake'), 500);
+                    const pinContainer = document.querySelector('.pin-container');
+                    pinContainer.classList.add('shake');
+                    setTimeout(() => pinContainer.classList.remove('shake'), 500);
+                }else{
+                    visibleInputAdmin.value = '';
+                    dotsAdmin.forEach(dotsAdmin => dotsAdmin.classList.remove('filled'));
+
+                    const pinContainer = document.querySelector('.pin-container-admin');
+                    pinContainer.classList.add('shake');
+                    setTimeout(() => pinContainer.classList.remove('shake'), 500);
+                }
 			});
 		}
     </script>
