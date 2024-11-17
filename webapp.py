@@ -41,7 +41,6 @@ class Storage:
         return len(pin) == length and pin.isdigit()
 
 
-
 app = Flask(__name__)
 app.secret_key = os.urandom(24)
 
@@ -154,6 +153,7 @@ def settings():
     return render_template(
         'settings_user.html'
     )
+
 
 @app.route('/mainMenu', methods=['GET'])
 def menu():
