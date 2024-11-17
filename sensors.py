@@ -13,6 +13,7 @@ def getTemperature():
     temperature = bme280.temperature
     return temperature
 
+
 def getNoiseLevel():
     """Reads a single measurement from the MOD-06638 sensor, and returns True if the noise is higher than limit."""
     SOUND_PIN = 11
@@ -20,6 +21,7 @@ def getNoiseLevel():
     GPIO.setup(SOUND_PIN, GPIO.IN)
     noise_detected = GPIO.input(SOUND_PIN)
     return noise_detected == GPIO.HIGH
+
 
 def getAirQuality():
     port = "/dev/ttyS0"  # Default UART port on Raspberry Pi
@@ -46,7 +48,7 @@ def getAirQuality():
             if data and data[0] == 0x42 and data[1] == 0x4D:
                 # Unpack the data frame based on PMS5003 format
                 frame = struct.unpack("30B", data[2:])
-                pm2_5 = frame[12] * 256 + frame[11] # PM2.5 concentration in µg/m³
+                pm2_5 = frame[12] * 256 + frame[11]     # PM2.5 concentration in µg/m³
                 return pm2_5
     except serial.SerialException as e:
         print(f"UART error: {e}")
@@ -61,6 +63,7 @@ def getAirQuality():
     #         pm2_5 = frame[3]  # PM2.5 concentration in µg/m³
     #         return pm2_5
     # return None
+
 
 def set_window_angle(degree):
     """Set a servo MOT-00484 to a specified angle."""
@@ -81,6 +84,7 @@ def set_window_angle(degree):
     finally:
         pwm.stop()
     return True
+
 
 def main():
     """Main function to read sensor values and control the servo."""
@@ -107,6 +111,7 @@ def main():
 
     finally:
         GPIO.cleanup()  # Ensure GPIO cleanup to avoid resource leaks
+
 
 # Run the main function if this file is executed
 if __name__ == "__main__":
