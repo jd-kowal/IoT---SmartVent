@@ -4,29 +4,134 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>SmartVent</title>
+	<link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
+    <style>
+        .pin-container {
+            margin: 2px auto;
+            width: 150px;
+            display: flex;
+            justify-content: space-between;
+            cursor: pointer;
+        }
+
+        .dot {
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            background-color: #ccc;
+        }
+
+        .dot.filled {
+            background-color: #000;
+        }
+
+        #visible-input {
+            position: absolute;
+            opacity: 0;
+            z-index: -1;
+        }
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            25% { transform: translateX(-5px); }
+            50% { transform: translateX(5px); }
+            75% { transform: translateX(-5px); }
+        }
+
+        .pin-container.shake {
+            animation: shake 0.5s;
+        }
+    </style>
 </head>
 <body>
-    <h1>Welcome</h1>
+	<div class="container">
+        <p class="center-label bigger">Welcome</p>
 
-    {% if show_set_pin %}
-        <h2>Set Admin PIN</h2>
-        <form action="{{ url_for('set_admin_pin') }}" method="POST">
-            <label for="pin1">Enter your 8-digit PIN:</label>
-            <input type="text" id="pin1" name="pin1" required>
-            <label for="pin2">Confirm your 8-digit PIN:</label>
-            <input type="text" id="pin2" name="pin2" required>
-            <button type="submit">Set Admin PIN</button>
-        </form>
-    {% else %}
-        {% if show_login %}
-            <h2>Login</h2>
-            <form action="{{ url_for('login') }}" method="POST">
-                <input type="hidden" name="role" value="user">
-                <label for="pin">Enter your PIN:</label>
-                <input type="text" id="pin" name="pin" required>
-                <button type="submit">Login</button>
+        {% if show_set_pin %}
+            <h2>Set Admin PIN</h2>
+            <form action="{{ url_for('set_admin_pin') }}" method="POST">
+                <label for="pin1">Enter your 8-digit PIN:</label>
+                <input type="text" id="pin1" name="pin1" required>
+                <label for="pin2">Confirm your 8-digit PIN:</label>
+                <input type="text" id="pin2" name="pin2" required>
+                <button type="submit">Set Admin PIN</button>
             </form>
+        {% else %}
+            {% if show_login %}
+            <p class="center-label bigger">Insert Pin</p>
+                <div class="pin-container" onclick="focusInput()">
+                    <div class="dot" id="dot1"></div>
+                    <div class="dot" id="dot2"></div>
+                    <div class="dot" id="dot3"></div>
+                    <div class="dot" id="dot4"></div>
+                </div>
+        
+                <input 
+                    type="password" 
+                    id="visible-input" 
+                    maxlength="4" 
+                    inputmode="numeric"
+                    pattern="[0-9]*"
+                    required>
+            {% endif %}
         {% endif %}
-    {% endif %}
+    </div>
+
+    
+    <script>
+        const visibleInput = document.getElementById('visible-input');
+        const dots = Array.from(document.querySelectorAll('.dot'));
+
+        function focusInput() {
+            visibleInput.focus();
+        }
+
+        window.addEventListener('load', () => {
+            visibleInput.focus();
+        });
+
+        visibleInput.addEventListener('input', (event) => {
+            console.log(visibleInput.value);
+            const value = visibleInput.value.replace(/[^0-9]/g, '').slice(0, 4);
+            visibleInput.value = value;
+
+            dots.forEach((dot, index) => {
+                dot.classList.toggle('filled', index < value.length);
+            });
+
+            if (value.length === 4) {
+                console.log(`Login attempt: ${value}`);
+                attemptLogin(value)
+            }
+        });
+
+
+		function attemptLogin(pin) {
+			fetch('/login', {
+				method: 'POST',
+				headers: {
+					'Content-Type': 'application/json',
+				},
+				body: JSON.stringify({ pin: pin }),
+			})
+			.then((response) => {
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+
+                if (response.redirected) {
+                    window.location.href = response.url;
+                }
+			})
+			.catch((error) => {
+				console.error('Error loggin in:', error);
+                visibleInput.value = '';
+                dots.forEach(dot => dot.classList.remove('filled'));
+
+                const pinContainer = document.querySelector('.pin-container');
+                pinContainer.classList.add('shake');
+                setTimeout(() => pinContainer.classList.remove('shake'), 500);
+			});
+		}
+    </script>
 </body>
 </html>
