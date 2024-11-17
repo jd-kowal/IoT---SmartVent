@@ -20,10 +20,16 @@ initial_run = False
 
 class Storage:
     def __init__(self):
-        self.temperature_threshold = None
+        self.temperature_threshold = {
+            "min": None,
+            "max": None
+        }
         self.temperature = None
+        self.temperature_toggle = None
         self.noise_level_threshold = None
+        self.noise_level_toggle = None
         self.air_quality_threshold = None
+        self.air_quality_toggle = None
         self.air_quality_real = None
         self.air_quality_user_friendly = None
         self.air_quality_map = {
@@ -34,7 +40,13 @@ class Storage:
         self.noise_level = None
         self.window_state_timer = None
         self.window_state_toggle = None
-        self.automation_timer = None
+        self.automation_timer = {
+            "start": None,
+            "end": None
+        }
+        self.automation_timer_toggle = None
+
+        self.is_window_open = None
 
         self.user_pin = None
         self.admin_pin = None
@@ -67,7 +79,6 @@ class Storage:
         return len(pin) == length and pin.isdigit()
 
 
-
 app = Flask(__name__)
 app.secret_key = os.urandom(24)
 
@@ -92,7 +103,7 @@ def setVals():
 
 
 scheduler = BackgroundScheduler()
-scheduler.add_job(func=setVals, trigger="interval", seconds=10)
+scheduler.add_job(func=setVals, trigger="interval", seconds=60)
 scheduler.start()
 
 
@@ -184,7 +195,8 @@ def set_admin_pin():
 
 @app.route('/login', methods=['POST'])
 def login():
-    pin = request.form['pin']
+    data = request.get_json()
+    pin = data['pin']
 
     if pin == app_data.user_pin:
         session['logged_in'] = 'user'
@@ -205,6 +217,7 @@ def settings():
     return render_template(
         'settings_user.html'
     )
+
 
 @app.route('/mainMenu', methods=['GET'])
 def menu():
@@ -281,6 +294,16 @@ def set_air_quality_threshold():
     app_data.save()
     return '', 204
 
+@app.route('/setAirQualityToggle', methods=['POST'])
+def set_air_quality_toggle():
+    air_quality_toggle = request.json.get('air_quality_toggle')
+
+    if air_quality_toggle is None:
+        return 'Missing air_quality_toggle parameter', 400
+
+    app_data.air_quality_toggle = air_quality_toggle
+    app_data.save()
+    return '', 204
 
 @app.route('/getNoiseLevel', methods=['GET'])
 def get_noise_level():
@@ -304,13 +327,26 @@ def set_noise_level_threshold():
     return '', 204
 
 
+@app.route('/setNoiseLevelToggle', methods=['POST'])
+def set_noise_level_toggle():
+    noise_level_toggle = request.json.get('noise_level_toggle')
+
+    if noise_level_toggle is None:
+        return 'Missing noise_level_toggle parameter', 400
+
+    app_data.noise_level_toggle = noise_level_toggle
+    app_data.save()
+    return '', 204
+
+
 @app.route('/getTemperature', methods=['GET'])
 def get_temperature_level():
     return jsonify({'temperature': app_data.temperature}), 200
 
 
 def set_temperature():
-    app_data.temperature = getTemperature()
+    temperature = getTemperature()
+    app_data.temperature = round(temperature, 1)
     app_data.save()
 
 
@@ -322,6 +358,18 @@ def set_temperature_threshold():
         return 'Missing temperature_threshold parameter', 400
 
     app_data.temperature_threshold = temperature_threshold
+    app_data.save()
+    return '', 204
+
+
+@app.route('/setTemperatureToggle', methods=['POST'])
+def set_temperature_toggle():
+    temperature_toggle = request.json.get('temperature_toggle')
+
+    if temperature_toggle is None:
+        return 'Missing temperature_toggle parameter', 400
+
+    app_data.temperature_toggle = temperature_toggle
     app_data.save()
     return '', 204
 
@@ -347,6 +395,10 @@ def set_window_state_toggle():
 
     app_data.window_state_toggle = window_state_toggle
     app_data.save()
+
+    if window_state_toggle:
+        print('Close window')
+
     return '', 204
 
 
@@ -360,6 +412,23 @@ def set_automation_timer():
     app_data.automation_timer = automation_timer
     app_data.save()
     return '', 204
+
+
+@app.route('/setAutomationTimerToggle', methods=['POST'])
+def set_automation_timer_toggle():
+    automation_timer_toggle = request.json.get('automation_timer_toggle')
+
+    if automation_timer_toggle is None:
+        return 'Missing automation_timer_toggle parameter', 400
+
+    app_data.automation_timer_toggle = automation_timer_toggle
+    app_data.save()
+    return '', 204
+
+
+@app.route('/isWindowOpen', methods=['GET'])
+def get_is_window_open():
+    return jsonify({'is_window_open': app_data.is_window_open}), 200
 
 
 @app.route('/metrics', methods=['GET'])
