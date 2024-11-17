@@ -9,9 +9,7 @@ python -m venv env
 source env/bin/activate
 pip install -r requirements.txt
 
-FLASK_APP=webapp.py
-FLASK_ENV=development
-flask run
+python3 webapp.py
 ```
 
 

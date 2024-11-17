@@ -95,13 +95,25 @@
 
         {% if show_set_pin %}
             <h2>Set Admin PIN</h2>
-            <form action="{{ url_for('set_admin_pin') }}" method="POST">
+            <form id="adminPinForm" onsubmit="submitPin(event, 'admin')">
                 <label for="pin1">Enter your 8-digit PIN:</label>
                 <input type="text" id="pin1" name="pin1" required>
                 <label for="pin2">Confirm your 8-digit PIN:</label>
                 <input type="text" id="pin2" name="pin2" required>
                 <button type="submit">Set Admin PIN</button>
             </form>
+        {% elif create_user %}
+            <h2>Create user pin</h2>
+            <form id="userPinForm" onsubmit="submitPin(event, 'user')">
+                <label for="pin1">Enter your 4-digit PIN:</label>
+                <input type="text" id="pin1" name="pin1" required>
+                <label for="pin2">Confirm your 4-digit PIN:</label>
+                <input type="text" id="pin2" name="pin2" required>
+                <button type="submit">Set User PIN</button>
+            </form>
+        {% elif define_maps %}
+            <h2>Current Air Quality Map</h2>
+            <pre>{{ air_quality_map | tojson }}</pre>
         {% else %}
             {% if show_login %}
                 <p class="center-label pins">Insert Pin</p>
@@ -146,7 +158,7 @@
         {% endif %}
     </div>
 
-    
+
     <script>
         const visibleInput = document.getElementById('visible-input');
         const dots = Array.from(document.querySelectorAll('.dot'));

@@ -4,23 +4,61 @@ import os
 import json
 from functools import wraps
 
+from sensors import getTemperature, getNoiseLevel, getAirQuality
+
+import time
+import atexit
+import threading
+
+import time
+import atexit
+
+from apscheduler.schedulers.background import BackgroundScheduler
 
 initial_run = False
 
 
 class Storage:
     def __init__(self):
-        self.temperature_threshold = None
-        self.air_quality_threshold = None
+        self.temperature_threshold = {
+            "min": None,
+            "max": None
+        }
+        self.temperature = None
+        self.temperature_toggle = None
         self.noise_level_threshold = None
-        self.air_quality = None
+        self.noise_level_toggle = None
+        self.air_quality_threshold = None
+        self.air_quality_toggle = None
+        self.air_quality_real = None
+        self.air_quality_user_friendly = None
+        self.air_quality_map = {
+            "good": {"start": None, "end": None},
+            "moderate": {"start": None, "end": None},
+            "poor": {"start": None, "end": None}
+        }
         self.noise_level = None
         self.window_state_timer = None
         self.window_state_toggle = None
-        self.automation_timer = None
+        self.automation_timer = {
+            "start": None,
+            "end": None
+        }
+        self.automation_timer_toggle = None
+
+        self.is_window_open = None
 
         self.user_pin = None
         self.admin_pin = None
+
+
+    def get_air_quality(self, pm_value):
+        for level, range_ in self.air_quality_map.items():
+            start, end = range_["start"], range_["end"]
+            if start is not None and end is not None and start <= pm_value <= end:
+                return level
+        return "None"
+
 
     def load(self):
         if os.path.exists(APP_DATA_FILE) and os.path.getsize(APP_DATA_FILE) > 0:
@@ -52,6 +90,23 @@ app_data = Storage()
 app_data.load()
 
 
+def setVals():
+    if app_data.air_quality_map is None:
+        return
+    set_air_quality()
+    print("Air quality:", app_data.air_quality_user_friendly)
+    print("Air quality:", app_data.air_quality_real)
+    set_temperature()
+    print("Temperature:", app_data.temperature)
+    set_noise_level()
+    print("Noise level:", app_data.noise_level)
+
+
+scheduler = BackgroundScheduler()
+scheduler.add_job(func=setVals, trigger="interval", seconds=60)
+scheduler.start()
+
+
 def user_required(f):
     @wraps(f)
     def decorated_function(*args, **kwargs):
@@ -73,6 +128,8 @@ def admin_required(f):
 @app.route('/', methods=['GET'])
 def index():
     show_set_pin = app_data.admin_pin is None
+    create_user = not show_set_pin and app_data.user_pin is None
+    define_maps = app_data.air_quality_map['good']['start'] is None
     show_login = True
 
     if 'logged_in' in session:
@@ -82,24 +139,29 @@ def index():
         'index.html',
         show_set_pin=show_set_pin,
         show_login=show_login,
+        create_user=create_user,
+        air_quality_map=app_data.air_quality_map,
+        define_maps=define_maps
     )
 
 
 @app.route('/setUserPin', methods=['POST'])
-@admin_required
+# @admin_required
 def set_user_pin():
     if request.method == 'POST':
-        pin1 = request.form.get('pin1')
-        pin2 = request.form.get('pin2')
+        data = request.get_json()
+
+        pin1 = data.get('pin1')
+        pin2 = data.get('pin2')
 
         if not pin1 or not pin2:
-            return 'Both PINs are required.', 400
+            return jsonify({"error": "Both PINs are required."}), 400
 
         if not Storage.is_valid_pin(pin1, 4) or not Storage.is_valid_pin(pin2, 4):
-            return 'User PIN must be exactly 4 digits.', 400
+            return jsonify({"error": "User PIN must be exactly 4 digits."}), 400
 
         if pin1 != pin2:
-            return 'User PINs do not match. Please try again.', 400
+            return jsonify({"error": "User PINs do not match. Please try again."}), 400
 
         app_data.user_pin = pin1
         app_data.save()
@@ -109,9 +171,10 @@ def set_user_pin():
 @app.route('/setAdminPin', methods=['POST'])
 def set_admin_pin():
     if request.method == 'POST':
+        data = request.get_json()
 
-        pin1 = request.form.get('pin1')
-        pin2 = request.form.get('pin2')
+        pin1 = data.get('pin1')
+        pin2 = data.get('pin2')
 
         if not pin1 or not pin2:
             return 'Both PINs are required.', 400
@@ -127,12 +190,13 @@ def set_admin_pin():
 
         initial_run = False
 
-        return redirect(url_for('index'))
+        return '', 200
 
 
 @app.route('/login', methods=['POST'])
 def login():
-    pin = request.form['pin']
+    data = request.get_json()
+    pin = data['pin']
 
     if pin == app_data.user_pin:
         session['logged_in'] = 'user'
@@ -166,7 +230,7 @@ def menu():
 @app.route('/userDashboard', methods=['GET'])
 @user_required
 def user_dashboard():
-    return render_template('user_dashboard.html', data={"secret": "This is the user dashboard."})
+    return render_template('main_menu.html')
 
 
 @app.route('/adminDashboard', methods=['GET'])
@@ -183,12 +247,107 @@ def logout():
 
 @app.route('/getAirQuality', methods=['GET'])
 def get_air_quality():
-    return jsonify({'air_quality': app_data.air_quality}), 200
+    return jsonify({'air_quality': app_data.air_quality_user_friendly}), 200
 
+
+def set_air_quality():
+    tmp_air_quality = getAirQuality()
+    app_data.air_quality_real = tmp_air_quality
+    app_data.air_quality_user_friendly = app_data.get_air_quality(
+            tmp_air_quality
+        )
+    app_data.save()
+
+
+@app.route('/setAirQualityMap', methods=['GET', 'POST'])
+def set_air_quality_map():
+
+    if request.method == 'GET':
+        return render_template('set_air_quality_map.html', air_quality_map=app_data.air_quality_map)
+    elif request.method == 'POST':
+        try:
+            data = request.get_json()
+
+            if not data or 'good' not in data or 'moderate' not in data or 'poor' not in data:
+                return jsonify({"error": "Invalid input. Must include good, moderate, and poor levels."}), 400
+
+            app_data.air_quality_map = {
+                "good": data.get("good"),
+                "moderate": data.get("moderate"),
+                "poor": data.get("poor")
+            }
+            app_data.save()
+            return jsonify({"message": "Air quality map updated successfully.", "air_quality_map": app_data.air_quality_map}), 200
+
+        except Exception as e:
+            return jsonify({"error": str(e)}), 400
+
+
+@app.route('/setAirQualityThreshold', methods=['POST'])
+def set_air_quality_threshold():
+    air_quality_threshold = request.json.get('air_quality_threshold')
+
+    if air_quality_threshold is None:
+        return 'Missing air_quality_threshold parameter', 400
+
+    app_data.air_quality_threshold = air_quality_threshold
+    app_data.save()
+    return '', 204
+
+@app.route('/setAirQualityToggle', methods=['POST'])
+def set_air_quality_toggle():
+    air_quality_toggle = request.json.get('air_quality_toggle')
+
+    if air_quality_toggle is None:
+        return 'Missing air_quality_toggle parameter', 400
+
+    app_data.air_quality_toggle = air_quality_toggle
+    app_data.save()
+    return '', 204
 
 @app.route('/getNoiseLevel', methods=['GET'])
 def get_noise_level():
     return jsonify({'noise_level': app_data.noise_level}), 200
+
+
+def set_noise_level():
+    app_data.noise_level = getNoiseLevel()
+    app_data.save()
+
+
+@app.route('/setNoiseLevelThreshold', methods=['POST'])
+def set_noise_level_threshold():
+    noise_level_threshold = request.json.get('noise_level_threshold')
+
+    if noise_level_threshold is None:
+        return 'Missing noise_level_threshold parameter', 400
+
+    app_data.noise_level_threshold = noise_level_threshold
+    app_data.save()
+    return '', 204
+
+
+@app.route('/setNoiseLevelToggle', methods=['POST'])
+def set_noise_level_toggle():
+    noise_level_toggle = request.json.get('noise_level_toggle')
+
+    if noise_level_toggle is None:
+        return 'Missing noise_level_toggle parameter', 400
+
+    app_data.noise_level_toggle = noise_level_toggle
+    app_data.save()
+    return '', 204
+
+
+@app.route('/getTemperature', methods=['GET'])
+def get_temperature_level():
+    return jsonify({'temperature': app_data.temperature}), 200
+
+
+def set_temperature():
+    temperature = getTemperature()
+    app_data.temperature = round(temperature, 1)
+    app_data.save()
 
 
 @app.route('/setTemperatureThreshold', methods=['POST'])
@@ -203,26 +362,14 @@ def set_temperature_threshold():
     return '', 204
 
 
-@app.route('/setAirQualityThreshold', methods=['POST'])
-def set_air_quality_threshold():
-    air_quality_threshold = request.json.get('air_quality_threshold')
+@app.route('/setTemperatureToggle', methods=['POST'])
+def set_temperature_toggle():
+    temperature_toggle = request.json.get('temperature_toggle')
 
-    if air_quality_threshold is None:
-        return 'Missing air_quality_threshold parameter', 400
+    if temperature_toggle is None:
+        return 'Missing temperature_toggle parameter', 400
 
-    app_data.air_quality_threshold = air_quality_threshold
-    app_data.save()
-    return '', 204
-
-
-@app.route('/setNoiseLevelThreshold', methods=['POST'])
-def set_noise_level_threshold():
-    noise_level_threshold = request.json.get('noise_level_threshold')
-
-    if noise_level_threshold is None:
-        return 'Missing noise_level_threshold parameter', 400
-
-    app_data.noise_level_threshold = noise_level_threshold
+    app_data.temperature_toggle = temperature_toggle
     app_data.save()
     return '', 204
 
@@ -248,6 +395,10 @@ def set_window_state_toggle():
 
     app_data.window_state_toggle = window_state_toggle
     app_data.save()
+
+    if window_state_toggle:
+        print('Close window')
+
     return '', 204
 
 
@@ -263,10 +414,29 @@ def set_automation_timer():
     return '', 204
 
 
+@app.route('/setAutomationTimerToggle', methods=['POST'])
+def set_automation_timer_toggle():
+    automation_timer_toggle = request.json.get('automation_timer_toggle')
+
+    if automation_timer_toggle is None:
+        return 'Missing automation_timer_toggle parameter', 400
+
+    app_data.automation_timer_toggle = automation_timer_toggle
+    app_data.save()
+    return '', 204
+
+
+@app.route('/isWindowOpen', methods=['GET'])
+def get_is_window_open():
+    return jsonify({'is_window_open': app_data.is_window_open}), 200
+
+
 @app.route('/metrics', methods=['GET'])
 def metrics():
     return jsonify(app_data.__dict__), 200
 
 
+
+
 if __name__ == '__main__':
-    app.run(port=5000)
+    app.run(host='0.0.0.0', port=5000, debug=True, use_reloader=False)
