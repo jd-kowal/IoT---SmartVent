@@ -4,7 +4,8 @@ import os
 import json
 from functools import wraps
 
-from sensors import getTemperature, getNoiseLevel, getAirQuality
+from temp import getTemperature, getNoiseLevel, getAirQuality
+# from sensors import getTemperature, getNoiseLevel, getAirQuality
 
 # import time
 # import atexit
@@ -97,8 +98,10 @@ def setVals():
     print("Noise level:", app_data.noise_level)
 
 
+DATA_INTERVAL_SECONDS = 60
+
 scheduler = BackgroundScheduler()
-scheduler.add_job(func=setVals, trigger="interval", seconds=60)
+scheduler.add_job(func=setVals, trigger="interval", seconds=DATA_INTERVAL_SECONDS)
 scheduler.start()
 
 
