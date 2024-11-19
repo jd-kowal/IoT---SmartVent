@@ -4,9 +4,10 @@ import os
 import json
 from functools import wraps
 
-from temp import getTemperature, getNoiseLevel, getAirQuality
-# from sensors import getTemperature, getNoiseLevel, getAirQuality
+from temp import getTemperature, getNoiseLevel, getAirQuality, set_window_angle
+# from sensors import getTemperature, getNoiseLevel, getAirQuality, set_window_angle
 
+from time import sleep
 # import time
 # import atexit
 # import threading
@@ -22,11 +23,12 @@ class Storage:
             "min": 10,
             "max": 31
         }
-        self.temperature = None
         self.temperature_toggle = None
-        self.noise_level_threshold = None
+        self.temperature = None
+        self.noise_level_threshold = False
         self.noise_level_toggle = None
-        self.air_quality_threshold = None
+        self.noise_level = None
+        self.air_quality_threshold = "moderate"
         self.air_quality_toggle = None
         self.air_quality_real = None
         self.air_quality_user_friendly = None
@@ -35,7 +37,6 @@ class Storage:
             "moderate": 25,
             "poor": 50
         }
-        self.noise_level = None
         self.window_state_timer = None
         self.window_state_toggle = None
         self.automation_timer = {
@@ -45,6 +46,8 @@ class Storage:
         self.automation_timer_toggle = None
 
         self.is_window_open = None
+        self.window_open_angle = 45
+        self.window_closed_angle = 0
 
         self.user_pin = None
         self.admin_pin = None
@@ -52,7 +55,7 @@ class Storage:
     def get_air_quality(self, pm_value):
         # Go from worst to best air quality in map
         for level, value in sorted(self.air_quality_map.items(), key=lambda item: item[1], reverse=True):
-            if value is not None and pm_value > value:
+            if value is not None and pm_value >= value:
                 return level
         return "None"
 
@@ -86,16 +89,49 @@ app_data = Storage()
 app_data.load()
 
 
+def should_window_open():
+    if app_data.noise_level_toggle and bool(app_data.noise_level) > bool(app_data.noise_level_threshold):
+        print(f"> Noise not met - thresh={app_data.noise_level_threshold} noise={app_data.noise_level}")
+        return False
+    if app_data.temperature_toggle and app_data.temperature > app_data.temperature_threshold["max"] or app_data.temperature < app_data.temperature_threshold["min"]:
+        print(f"> Temp not met - thresh={app_data.temperature_threshold} temp={app_data.temperature}")
+        return False
+    if not app_data.air_quality_toggle:
+        return True
+    for level, _ in sorted(app_data.air_quality_map.items(), key=lambda item: item[1]):
+        if level == app_data.air_quality_user_friendly:
+            break
+        if level == app_data.air_quality_threshold:
+            print(f"> Air not met - thresh={app_data.air_quality_threshold} air={app_data.air_quality_user_friendly}")
+            return False
+    return True
+
+
 def setVals():
     if app_data.air_quality_map is None:
         return
+    set_noise_level()
+    print("Noise level:", app_data.noise_level)
     set_air_quality()
     print("Air quality:", app_data.air_quality_user_friendly)
     print("Air quality:", app_data.air_quality_real)
     set_temperature()
     print("Temperature:", app_data.temperature)
-    set_noise_level()
-    print("Noise level:", app_data.noise_level)
+
+    if should_window_open():
+        if not app_data.is_window_open:
+            set_window_angle(app_data.window_open_angle)
+            app_data.is_window_open = True
+            app_data.save()
+            print("** Window Opened **")
+        return
+
+    if app_data.is_window_open:
+        set_window_angle(app_data.window_closed_angle)
+        app_data.is_window_open = False
+        app_data.save()
+        print("** Window Closed **")
+    return
 
 
 DATA_INTERVAL_SECONDS = 60
@@ -311,7 +347,12 @@ def get_noise_level():
 
 
 def set_noise_level():
-    app_data.noise_level = getNoiseLevel()
+    noise_levels = []
+    for _ in range(6):
+        noise_levels.append(getNoiseLevel())
+        sleep(1)
+    print(noise_levels)
+    app_data.noise_level = sum(noise_levels) >= 3
     app_data.save()
 
 
