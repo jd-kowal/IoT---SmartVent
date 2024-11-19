@@ -162,7 +162,79 @@
             animation: shake 0.5s;
         }
 
+        /* USER SET */
 
+        .pin-container-set-user {
+            margin: 2px auto;
+            width: 150px;
+            display: flex;
+            justify-content: space-between;
+            cursor: pointer;
+        }
+
+        .dotSetUser {
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            background-color: #ccc;
+        }
+
+        .dotSetUser.filled {
+            background-color: #200008;
+        }
+
+        #visible-input-set-user {
+            position: absolute;
+            opacity: 0;
+            z-index: -1;
+        }
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            25% { transform: translateX(-5px); }
+            50% { transform: translateX(5px); }
+            75% { transform: translateX(-5px); }
+        }
+
+        .pin-container-set-user.shake {
+            animation: shake 0.5s;
+        }
+
+        /* USER SET CONFIRM */
+        
+        .pin-container-set-user-confirm {
+            margin: 2px auto;
+            width: 150px;
+            display: flex;
+            justify-content: space-between;
+            cursor: pointer;
+        }
+
+        .dotSetUserConfirm {
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            background-color: #ccc;
+        }
+
+        .dotSetUserConfirm.filled {
+            background-color: #200008;
+        }
+
+        #visible-input-set-user-confirm {
+            position: absolute;
+            opacity: 0;
+            z-index: -1;
+        }
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            25% { transform: translateX(-5px); }
+            50% { transform: translateX(5px); }
+            75% { transform: translateX(-5px); }
+        }
+
+        .pin-container-set-user-confirm.shake {
+            animation: shake 0.5s;
+        }
     </style>
 </head>
 <body>
@@ -220,19 +292,43 @@
 
 
         {% elif create_user %}
-            <h2>Create user pin</h2>
-            <form id="userPinForm" onsubmit="submitPin(event, 'user')">
-                <label for="pin1">Enter your 4-digit PIN:</label>
-                <input type="text" id="pin1" name="pin1" required>
-                <label for="pin2">Confirm your 4-digit PIN:</label>
-                <input type="text" id="pin2" name="pin2" required>
-                <button type="submit">Set User PIN</button>
-            </form>
-        {% elif define_maps %}
+            <p class="center-label pins">Insert Pin</p>
+            <div class="pin-container-set-user" onclick="focusInputSetUser()">
+                <div class="dotSetUser" id="dotSetUser1"></div>
+                <div class="dotSetUser" id="dotSetUser2"></div>
+                <div class="dotSetUser" id="dotSetUser3"></div>
+                <div class="dotSetUser" id="dotSetUser4"></div>
+            </div>
+
+            <input 
+                type="password" 
+                id="visible-input-set-user" 
+                maxlength="4" 
+                inputmode="numeric"
+                pattern="[0-9]*"
+                required>
+
+             
+            <p class="center-label pins">Confirm Pin</p>
+            <div class="pin-container-set-user-confirm" onclick="focusInputSetUserConfirm()">
+                <div class="dotSetUserConfirm" id="dotSetUserConfirm1"></div>
+                <div class="dotSetUserConfirm" id="dotSetUserConfirm2"></div>
+                <div class="dotSetUserConfirm" id="dotSetUserConfirm3"></div>
+                <div class="dotSetUserConfirm" id="dotSetUserConfirm4"></div>
+            </div>
+    
+            <input 
+                type="password" 
+                id="visible-input-set-user-confirm" 
+                maxlength="4" 
+                inputmode="numeric"
+                pattern="[0-9]*"
+                required>
+        <!-- {% elif define_maps %}
             <h2>Current Air Quality Map</h2>
-            <pre>{{ air_quality_map | tojson }}</pre>
+            <pre>{{ air_quality_map | tojson }}</pre> -->
         {% else %}
-            {% if show_login %}
+            <!-- {% if show_login %} -->
                 <p class="center-label pins">Insert Pin</p>
                 <div class="pin-container" onclick="focusInput()">
                     <div class="dot" id="dot1"></div>
@@ -271,7 +367,7 @@
                         pattern="[0-9]*"
                         required>
                 </div>
-            {% endif %}
+            <!-- {% endif %} -->
         {% endif %}
     </div>
 
@@ -356,69 +452,159 @@
         let setAdminConfirmPin = "";
 
         function focusInputSetAdmin() {
-            visibleInputSetAdmin.focus();
+            if (visibleInputSetAdmin){
+                visibleInputSetAdmin.focus();
+            }
         }
 
         window.addEventListener('load', () => {
-            visibleInputSetAdmin.focus();
+            if (visibleInputSetAdmin){
+                visibleInputSetAdmin.focus();
+            }
         });
 
-        visibleInputSetAdmin.addEventListener('input', (event) => {
-            console.log(visibleInputSetAdmin.value);
-            const value = visibleInputSetAdmin.value.replace(/[^0-9]/g, '').slice(0, 8);
-            visibleInputSetAdmin.value = value;
+        if (visibleInputSetAdmin){
+            visibleInputSetAdmin.addEventListener('input', (event) => {
+                console.log(visibleInputSetAdmin.value);
+                const value = visibleInputSetAdmin.value.replace(/[^0-9]/g, '').slice(0, 8);
+                visibleInputSetAdmin.value = value;
 
-            dotsSetAdmin.forEach((dot, index) => {
-                dot.classList.toggle('filled', index < value.length);
+                dotsSetAdmin.forEach((dot, index) => {
+                    dot.classList.toggle('filled', index < value.length);
+                });
+
+                if (value.length === 8) {
+                    console.log(`Admin Pin fully inputed: ${value}`);
+                    setAdminPin = value;
+                    focusInputSetAdminConfirm();
+                }else{
+                    setAdminPin = "";
+                }
+
+                if (setAdminConfirmPin.length === 8 && setAdminPin.length === 8) {
+                    console.log(`BOTH PINS INPUTED - REGISTER ADMIN PIN STARTED`);
+                    console.log(`Admin Pin1: ${setAdminPin}`);
+                    console.log(`Admin Pin2: ${setAdminConfirmPin}`);
+                    attemptSetAdminPin(setAdminPin, setAdminConfirmPin);
+                }
             });
-
-            if (value.length === 8) {
-                console.log(`Admin Pin fully inputed: ${value}`);
-                setAdminPin = value;
-                focusInputSetAdminConfirm();
-            }else{
-                setAdminPin = "";
-            }
-
-            if (setAdminConfirmPin.length === 8 && setAdminPin.length === 8) {
-                console.log(`BOTH PINS INPUTED - REGISTER ADMIN PIN STARTED`);
-                console.log(`Admin Pin1: ${setAdminPin}`);
-                console.log(`Admin Pin2: ${setAdminConfirmPin}`);
-                attemptSetAdminPin(setAdminPin, setAdminConfirmPin);
-            }
-        });
+        }
 
         const visibleInputSetAdminConfirm = document.getElementById('visible-input-set-admin-confirm');
         const dotsSetAdminConfirm = Array.from(document.querySelectorAll('.dotSetAdminConfirm'));
 
         function focusInputSetAdminConfirm() {
-            visibleInputSetAdminConfirm.focus();
+            if (visibleInputSetAdminConfirm){
+                visibleInputSetAdminConfirm.focus();
+            }
         }
 
-        visibleInputSetAdminConfirm.addEventListener('input', (event) => {
-            console.log(visibleInputSetAdminConfirm.value);
-            const value = visibleInputSetAdminConfirm.value.replace(/[^0-9]/g, '').slice(0, 8);
-            visibleInputSetAdminConfirm.value = value;
+        if (visibleInputSetAdminConfirm){
+            visibleInputSetAdminConfirm.addEventListener('input', (event) => {
+                console.log(visibleInputSetAdminConfirm.value);
+                const value = visibleInputSetAdminConfirm.value.replace(/[^0-9]/g, '').slice(0, 8);
+                visibleInputSetAdminConfirm.value = value;
 
-            dotsSetAdminConfirm.forEach((dot, index) => {
-                dot.classList.toggle('filled', index < value.length);
+                dotsSetAdminConfirm.forEach((dot, index) => {
+                    dot.classList.toggle('filled', index < value.length);
+                });
+
+                if (value.length === 8) {
+                    console.log(`Admin Confirm Pin fully inputed: ${value}`);
+                    setAdminConfirmPin = value;
+                }else{
+                    setAdminConfirmPin = "";
+                }
+
+                if (setAdminConfirmPin.length === 8 && setAdminPin.length === 8) {
+                    console.log(`BOTH PINS INPUTED - REGISTER ADMIN PIN STARTED`);
+                    console.log(`Admin Pin1: ${setAdminPin}`);
+                    console.log(`Admin Pin2: ${setAdminConfirmPin}`);
+                    attemptSetAdminPin(setAdminPin, setAdminConfirmPin);
+                }
             });
+        }
 
-            if (value.length === 8) {
-                console.log(`Admin Confirm Pin fully inputed: ${value}`);
-                setAdminConfirmPin = value;
-            }else{
-                setAdminConfirmPin = "";
+        // SET USER PIN
+
+        const visibleInputSetUser = document.getElementById('visible-input-set-user');
+        const dotsSetUser = Array.from(document.querySelectorAll('.dotSetUser'));
+        let setUserPin = "";
+        let setUserConfirmPin = "";
+
+        function focusInputSetUser() {
+            if (visibleInputSetUser){
+                visibleInputSetUser.focus();
             }
+        }
 
-            if (setAdminConfirmPin.length === 8 && setAdminPin.length === 8) {
-                console.log(`BOTH PINS INPUTED - REGISTER ADMIN PIN STARTED`);
-                console.log(`Admin Pin1: ${setAdminPin}`);
-                console.log(`Admin Pin2: ${setAdminConfirmPin}`);
-                attemptSetAdminPin(setAdminPin, setAdminConfirmPin);
+        window.addEventListener('load', () => {
+            if (visibleInputSetUser){
+                visibleInputSetUser.focus();
             }
         });
 
+        if (visibleInputSetUser){
+            visibleInputSetUser.addEventListener('input', (event) => {
+                console.log(visibleInputSetUser.value);
+                const value = visibleInputSetUser.value.replace(/[^0-9]/g, '').slice(0, 4);
+                visibleInputSetUser.value = value;
+
+                dotsSetUser.forEach((dot, index) => {
+                    dot.classList.toggle('filled', index < value.length);
+                });
+
+                if (value.length === 4) {
+                    console.log(`User Pin fully inputed: ${value}`);
+                    setUserPin = value;
+                    focusInputSetUserConfirm();
+                }else{
+                    setUserPin = "";
+                }
+
+                if (setUserConfirmPin.length === 4 && setUserPin.length === 4) {
+                    console.log(`BOTH PINS INPUTED - REGISTER USER PIN STARTED`);
+                    console.log(`User Pin1: ${setUserPin}`);
+                    console.log(`User Pin2: ${setUserConfirmPin}`);
+                    attemptSetUserPin(setUserPin, setUserConfirmPin);
+                }
+            });
+        }
+
+        const visibleInputSetUserConfirm = document.getElementById('visible-input-set-user-confirm');
+        const dotsSetUserConfirm = Array.from(document.querySelectorAll('.dotSetUserConfirm'));
+
+        function focusInputSetUserConfirm() {
+            if (visibleInputSetUserConfirm){
+                visibleInputSetUserConfirm.focus();
+            }
+        }
+
+        if (visibleInputSetUserConfirm){
+            visibleInputSetUserConfirm.addEventListener('input', (event) => {
+                console.log(visibleInputSetUserConfirm.value);
+                const value = visibleInputSetUserConfirm.value.replace(/[^0-9]/g, '').slice(0, 4);
+                visibleInputSetUserConfirm.value = value;
+
+                dotsSetUserConfirm.forEach((dot, index) => {
+                    dot.classList.toggle('filled', index < value.length);
+                });
+
+                if (value.length === 4) {
+                    console.log(`User Confirm Pin fully inputed: ${value}`);
+                    setUserConfirmPin = value;
+                }else{
+                    setUserConfirmPin = "";
+                }
+
+                if (setUserConfirmPin.length === 4 && setUserPin.length === 4) {
+                    console.log(`BOTH PINS INPUTED - REGISTER USER PIN STARTED`);
+                    console.log(`User Pin1: ${setUserPin}`);
+                    console.log(`User Pin2: ${setUserConfirmPin}`);
+                    attemptSetUserPin(setUserPin, setUserConfirmPin);
+                }
+            });
+        }
 
         // BACKEND COMMUNICATION BELOW
         
@@ -460,6 +646,50 @@
                 focusInputSetAdmin();
 			});
         }
+
+        // SET USER PIN
+
+
+        function attemptSetUserPin(pin1, pin2) {
+			fetch('/setUserPin', {
+				method: 'POST',
+				headers: {
+					'Content-Type': 'application/json',
+				},
+				body: JSON.stringify({ pin1: pin1 , pin2: pin2 }),
+			})
+			.then((response) => {
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                
+                if (response.redirected) {
+                    window.location.href = response.url;
+                }else{
+                    location.reload();
+                }
+			})
+			.catch((error) => {
+				console.error('Error setting user pin:', error);
+                visibleInputSetUser.value = '';
+                visibleInputSetUserConfirm.value = '';
+                dotsSetUser.forEach(dot => dot.classList.remove('filled'));
+                dotsSetUserConfirm.forEach(dot => dot.classList.remove('filled'));
+                setUserConfirmPin = "";
+                setUserPin = "";
+
+                const pinContainer = document.querySelector('.pin-container-set-user-confirm');
+                pinContainer.classList.add('shake');
+                setTimeout(() => pinContainer.classList.remove('shake'), 500);
+                const pinContainerConfirm = document.querySelector('.pin-container-set-user');
+                pinContainerConfirm.classList.add('shake');
+                setTimeout(() => pinContainerConfirm.classList.remove('shake'), 500);
+
+                focusInputSetUser();
+			});
+        }
+
+        // LOGIN
 
 		function attemptLogin(pin, isAdmin) {
 			fetch('/login', {
