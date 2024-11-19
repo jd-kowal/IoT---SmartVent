@@ -13,14 +13,26 @@ def getTemperature():
     temperature = bme280.temperature
     return temperature
 
-
 def getNoiseLevel():
     """Reads a single measurement from the MOD-06638 sensor, and returns True if the noise is higher than limit."""
-    SOUND_PIN = 11
-    GPIO.setmode(GPIO.BCM)
-    GPIO.setup(SOUND_PIN, GPIO.IN)
-    noise_detected = GPIO.input(SOUND_PIN)
+#    pins = [0, 1, 4, 5, 6, 7, 8, 9, 10, 11,12, 13, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27]
+    pins = [0, 17, 27]
+    for SOUND_PIN in pins:
+#    print(f"{SOUND_PIN}. {noise_detected}")
+#    SOUND_PIN = 0
+      GPIO.setmode(GPIO.BCM)
+      GPIO.setup(SOUND_PIN, GPIO.IN)
+      noise_detected = GPIO.input(SOUND_PIN)
+      print(f"{SOUND_PIN}. {noise_detected}")
     return noise_detected == GPIO.HIGH
+
+# def getNoiseLevel():
+#     """Reads a single measurement from the MOD-06638 sensor, and returns True if the noise is higher than limit."""
+#     SOUND_PIN = 11
+#     GPIO.setmode(GPIO.BCM)
+#     GPIO.setup(SOUND_PIN, GPIO.IN)
+#     noise_detected = GPIO.input(SOUND_PIN)
+#     return noise_detected == GPIO.HIGH
 
 
 def getAirQuality():
@@ -71,7 +83,7 @@ def set_window_angle(degree):
         print("Invalid angle. Must be between 0 and 90.")
         return False
 
-    SERVO_PIN = 33
+    SERVO_PIN = 13
     GPIO.setup(SERVO_PIN, GPIO.OUT)
     pwm = GPIO.PWM(SERVO_PIN, 50)  # 50Hz frequency
     pwm.start(0)  # Start PWM with 0 duty cycle
@@ -94,8 +106,14 @@ def main():
         print(f"Temperature: {temperature:.2f} °C")
 
         # Read noise level
-        noise_detected = getNoiseLevel()
-        print("Noise Detected:", "Yes" if noise_detected else "No")
+        for i in range(180):
+          time.sleep(2)
+          noise_detected = getNoiseLevel()
+          print(f"{i}. Noise Detected:", "Yes" if noise_detected else "No")
+
+        # # Read noise level
+        # noise_detected = getNoiseLevel()
+        # print("Noise Detected:", "Yes" if noise_detected else "No")
 
         # Read air quality (PM2.5 concentration)
         air_quality = getAirQuality()
