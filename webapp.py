@@ -6,12 +6,9 @@ from functools import wraps
 
 from sensors import getTemperature, getNoiseLevel, getAirQuality
 
-import time
-import atexit
-import threading
-
-import time
-import atexit
+# import time
+# import atexit
+# import threading
 
 from apscheduler.schedulers.background import BackgroundScheduler
 
@@ -21,8 +18,8 @@ initial_run = False
 class Storage:
     def __init__(self):
         self.temperature_threshold = {
-            "min": None,
-            "max": None
+            "min": 10,
+            "max": 31
         }
         self.temperature = None
         self.temperature_toggle = None
@@ -33,9 +30,9 @@ class Storage:
         self.air_quality_real = None
         self.air_quality_user_friendly = None
         self.air_quality_map = {
-            "good": {"start": None, "end": None},
-            "moderate": {"start": None, "end": None},
-            "poor": {"start": None, "end": None}
+            "good": 0,
+            "moderate": 25,
+            "poor": 50
         }
         self.noise_level = None
         self.window_state_timer = None
@@ -51,14 +48,12 @@ class Storage:
         self.user_pin = None
         self.admin_pin = None
 
-
     def get_air_quality(self, pm_value):
-        for level, range_ in self.air_quality_map.items():
-            start, end = range_["start"], range_["end"]
-            if start is not None and end is not None and start <= pm_value <= end:
+        # Go from worst to best air quality in map
+        for level, value in sorted(self.air_quality_map.items(), key=lambda item: item[1], reverse=True):
+            if value is not None and pm_value > value:
                 return level
         return "None"
-
 
     def load(self):
         if os.path.exists(APP_DATA_FILE) and os.path.getsize(APP_DATA_FILE) > 0:
@@ -129,7 +124,7 @@ def admin_required(f):
 def index():
     show_set_pin = app_data.admin_pin is None
     create_user = not show_set_pin and app_data.user_pin is None
-    define_maps = app_data.air_quality_map['good']['start'] is None
+    # define_maps = app_data.air_quality_map['good'] is None
     show_login = True
 
     if 'logged_in' in session:
@@ -141,7 +136,7 @@ def index():
         show_login=show_login,
         create_user=create_user,
         air_quality_map=app_data.air_quality_map,
-        define_maps=define_maps
+        # define_maps=define_maps
     )
 
 
@@ -294,6 +289,7 @@ def set_air_quality_threshold():
     app_data.save()
     return '', 204
 
+
 @app.route('/setAirQualityToggle', methods=['POST'])
 def set_air_quality_toggle():
     air_quality_toggle = request.json.get('air_quality_toggle')
@@ -304,6 +300,7 @@ def set_air_quality_toggle():
     app_data.air_quality_toggle = air_quality_toggle
     app_data.save()
     return '', 204
+
 
 @app.route('/getNoiseLevel', methods=['GET'])
 def get_noise_level():
@@ -434,8 +431,6 @@ def get_is_window_open():
 @app.route('/metrics', methods=['GET'])
 def metrics():
     return jsonify(app_data.__dict__), 200
-
-
 
 
 if __name__ == '__main__':
