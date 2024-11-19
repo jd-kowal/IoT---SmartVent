@@ -87,6 +87,82 @@
         #admin-login {
             display: none;
         }
+
+        /* SET ADMIN  */
+        
+        .pin-container-set-admin {
+            margin: 2px auto;
+            width: 300px;
+            display: flex;
+            justify-content: space-between;
+            cursor: pointer;
+        }
+
+        .dotSetAdmin {
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            background-color: #ccc;
+        }
+
+        .dotSetAdmin.filled {
+            background-color: #200008;
+        }
+
+        #visible-input-set-admin {
+            position: absolute;
+            opacity: 0;
+            z-index: -1;
+        }
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            25% { transform: translateX(-5px); }
+            50% { transform: translateX(5px); }
+            75% { transform: translateX(-5px); }
+        }
+
+        .pin-container-set-admin.shake {
+            animation: shake 0.5s;
+        }
+
+        /* ADMIN SET CONFIRM */
+        
+        .pin-container-set-admin-confirm {
+            margin: 2px auto;
+            width: 300px;
+            display: flex;
+            justify-content: space-between;
+            cursor: pointer;
+        }
+
+        .dotSetAdminConfirm {
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            background-color: #ccc;
+        }
+
+        .dotSetAdminConfirm.filled {
+            background-color: #200008;
+        }
+
+        #visible-input-set-admin-confirm {
+            position: absolute;
+            opacity: 0;
+            z-index: -1;
+        }
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            25% { transform: translateX(-5px); }
+            50% { transform: translateX(5px); }
+            75% { transform: translateX(-5px); }
+        }
+
+        .pin-container-set-admin-confirm.shake {
+            animation: shake 0.5s;
+        }
+
+
     </style>
 </head>
 <body>
@@ -94,14 +170,55 @@
         <p class="center-label bigger" id="ClickableSecret">Welcome</p>
 
         {% if show_set_pin %}
-            <h2>Set Admin PIN</h2>
-            <form id="adminPinForm" onsubmit="submitPin(event, 'admin')">
+            <p class="center-label pins">Set Admin PIN</p>
+            <div class="pin-container-set-admin" onclick="focusInputSetAdmin()">
+                <div class="dotSetAdmin" id="setAdminDot1"></div>
+                <div class="dotSetAdmin" id="setAdminDot2"></div>
+                <div class="dotSetAdmin" id="setAdminDot3"></div>
+                <div class="dotSetAdmin" id="setAdminDot4"></div>
+                <div class="dotSetAdmin" id="setAdminDot5"></div>
+                <div class="dotSetAdmin" id="setAdminDot6"></div>
+                <div class="dotSetAdmin" id="setAdminDot7"></div>
+                <div class="dotSetAdmin" id="setAdminDot8"></div>
+            </div>
+
+            <input
+                type="password"
+                id="visible-input-set-admin"
+                maxlength="8"
+                inputmode="numeric"
+                pattern="[0-9]*"
+                required>
+
+            <p class="center-label pins">Confirm Admin PIN</p>
+            <div class="pin-container-set-admin-confirm" onclick="focusInputSetAdminConfirm()">
+                <div class="dotSetAdminConfirm" id="setAdminConfirmDot1"></div>
+                <div class="dotSetAdminConfirm" id="setAdminConfirmDot2"></div>
+                <div class="dotSetAdminConfirm" id="setAdminConfirmDot3"></div>
+                <div class="dotSetAdminConfirm" id="setAdminConfirmDot4"></div>
+                <div class="dotSetAdminConfirm" id="setAdminConfirmDot5"></div>
+                <div class="dotSetAdminConfirm" id="setAdminConfirmDot6"></div>
+                <div class="dotSetAdminConfirm" id="setAdminConfirmDot7"></div>
+                <div class="dotSetAdminConfirm" id="setAdminConfirmDot8"></div>
+            </div>
+    
+            <input
+                type="password"
+                id="visible-input-set-admin-confirm"
+                maxlength="8"
+                inputmode="numeric"
+                pattern="[0-9]*"
+                required>
+
+            <!-- <form id="adminPinForm" onsubmit="submitPin(event, 'admin')">
                 <label for="pin1">Enter your 8-digit PIN:</label>
                 <input type="text" id="pin1" name="pin1" required>
                 <label for="pin2">Confirm your 8-digit PIN:</label>
                 <input type="text" id="pin2" name="pin2" required>
                 <button type="submit">Set Admin PIN</button>
-            </form>
+            </form> -->
+
+
         {% elif create_user %}
             <h2>Create user pin</h2>
             <form id="userPinForm" onsubmit="submitPin(event, 'user')">
@@ -164,67 +281,186 @@
         const dots = Array.from(document.querySelectorAll('.dot'));
 
         function focusInput() {
-            visibleInput.focus();
+            if (visibleInput) {
+                visibleInput.focus();
+            }
         }
 
         window.addEventListener('load', () => {
-            visibleInput.focus();
-        });
-
-        visibleInput.addEventListener('input', (event) => {
-            console.log(visibleInput.value);
-            const value = visibleInput.value.replace(/[^0-9]/g, '').slice(0, 4);
-            visibleInput.value = value;
-
-            dots.forEach((dot, index) => {
-                dot.classList.toggle('filled', index < value.length);
-            });
-
-            if (value.length === 4) {
-                console.log(`Login attempt: ${value}`);
-                attemptLogin(value, false)
+            if (visibleInput) {
+                visibleInput.focus();
             }
         });
+
+        if (visibleInput) {
+            visibleInput.addEventListener('input', (event) => {
+                console.log(visibleInput.value);
+                const value = visibleInput.value.replace(/[^0-9]/g, '').slice(0, 4);
+                visibleInput.value = value;
+
+                dots.forEach((dot, index) => {
+                    dot.classList.toggle('filled', index < value.length);
+                });
+
+                if (value.length === 4) {
+                    console.log(`Login attempt: ${value}`);
+                    attemptLogin(value, false);
+                }
+            });
+        }
 
 
 
         // AMDIN:
-
         
         const visibleInputAdmin = document.getElementById('visible-input-admin');
         const dotsAdmin = Array.from(document.querySelectorAll('.dotAdmin'));
         let clickCount = 0;
 
         function focusInputAdmin() {
-            visibleInputAdmin.focus();
+            if (visibleInputAdmin) {
+                visibleInputAdmin.focus();
+            }
         }
 
-        document.getElementById('ClickableSecret').addEventListener('click', function () {
-            clickCount++;
-            if (clickCount >= 5) {
-                document.getElementById('admin-login').style.display = 'block';
-                focusInputAdmin();
-            }
+        if (visibleInputAdmin) {
+            document.getElementById('ClickableSecret').addEventListener('click', function () {
+                clickCount++;
+                if (clickCount >= 5) {
+                    document.getElementById('admin-login').style.display = 'block';
+                    focusInputAdmin();
+                }
+            });
+
+            visibleInputAdmin.addEventListener('input', (event) => {
+                console.log(visibleInputAdmin.value);
+                const value = visibleInputAdmin.value.replace(/[^0-9]/g, '').slice(0, 8);
+                visibleInputAdmin.value = value;
+
+                dotsAdmin.forEach((dotsAdmin, index) => {
+                    dotsAdmin.classList.toggle('filled', index < value.length);
+                });
+
+                if (value.length === 8) {
+                    console.log(`Login attempt: ${value}`);
+                    attemptLogin(value,true);
+                }
+            });
+        }
+
+        // SET ADMIN PIN
+
+        const visibleInputSetAdmin = document.getElementById('visible-input-set-admin');
+        const dotsSetAdmin = Array.from(document.querySelectorAll('.dotSetAdmin'));
+        let setAdminPin = "";
+        let setAdminConfirmPin = "";
+
+        function focusInputSetAdmin() {
+            visibleInputSetAdmin.focus();
+        }
+
+        window.addEventListener('load', () => {
+            visibleInputSetAdmin.focus();
         });
 
-        visibleInputAdmin.addEventListener('input', (event) => {
-            console.log(visibleInputAdmin.value);
-            const value = visibleInputAdmin.value.replace(/[^0-9]/g, '').slice(0, 8);
-            visibleInputAdmin.value = value;
+        visibleInputSetAdmin.addEventListener('input', (event) => {
+            console.log(visibleInputSetAdmin.value);
+            const value = visibleInputSetAdmin.value.replace(/[^0-9]/g, '').slice(0, 8);
+            visibleInputSetAdmin.value = value;
 
-            dotsAdmin.forEach((dotsAdmin, index) => {
-                dotsAdmin.classList.toggle('filled', index < value.length);
+            dotsSetAdmin.forEach((dot, index) => {
+                dot.classList.toggle('filled', index < value.length);
             });
 
             if (value.length === 8) {
-                console.log(`Login attempt: ${value}`);
-                attemptLogin(value,true)
+                console.log(`Admin Pin fully inputed: ${value}`);
+                setAdminPin = value;
+                focusInputSetAdminConfirm();
+            }else{
+                setAdminPin = "";
+            }
+
+            if (setAdminConfirmPin.length === 8 && setAdminPin.length === 8) {
+                console.log(`BOTH PINS INPUTED - REGISTER ADMIN PIN STARTED`);
+                console.log(`Admin Pin1: ${setAdminPin}`);
+                console.log(`Admin Pin2: ${setAdminConfirmPin}`);
+                attemptSetAdminPin(setAdminPin, setAdminConfirmPin);
+            }
+        });
+
+        const visibleInputSetAdminConfirm = document.getElementById('visible-input-set-admin-confirm');
+        const dotsSetAdminConfirm = Array.from(document.querySelectorAll('.dotSetAdminConfirm'));
+
+        function focusInputSetAdminConfirm() {
+            visibleInputSetAdminConfirm.focus();
+        }
+
+        visibleInputSetAdminConfirm.addEventListener('input', (event) => {
+            console.log(visibleInputSetAdminConfirm.value);
+            const value = visibleInputSetAdminConfirm.value.replace(/[^0-9]/g, '').slice(0, 8);
+            visibleInputSetAdminConfirm.value = value;
+
+            dotsSetAdminConfirm.forEach((dot, index) => {
+                dot.classList.toggle('filled', index < value.length);
+            });
+
+            if (value.length === 8) {
+                console.log(`Admin Confirm Pin fully inputed: ${value}`);
+                setAdminConfirmPin = value;
+            }else{
+                setAdminConfirmPin = "";
+            }
+
+            if (setAdminConfirmPin.length === 8 && setAdminPin.length === 8) {
+                console.log(`BOTH PINS INPUTED - REGISTER ADMIN PIN STARTED`);
+                console.log(`Admin Pin1: ${setAdminPin}`);
+                console.log(`Admin Pin2: ${setAdminConfirmPin}`);
+                attemptSetAdminPin(setAdminPin, setAdminConfirmPin);
             }
         });
 
 
-        //LOGIN
+        // BACKEND COMMUNICATION BELOW
         
+        function attemptSetAdminPin(pin1, pin2) {
+			fetch('/setAdminPin', {
+				method: 'POST',
+				headers: {
+					'Content-Type': 'application/json',
+				},
+				body: JSON.stringify({ pin1: pin1 , pin2: pin2 }),
+			})
+			.then((response) => {
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                
+                if (response.redirected) {
+                    window.location.href = response.url;
+                }else{
+                    location.reload();
+                }
+			})
+			.catch((error) => {
+				console.error('Error setting admin pin:', error);
+                visibleInputSetAdmin.value = '';
+                visibleInputSetAdminConfirm.value = '';
+                dotsSetAdmin.forEach(dot => dot.classList.remove('filled'));
+                dotsSetAdminConfirm.forEach(dot => dot.classList.remove('filled'));
+                setAdminConfirmPin = "";
+                setAdminPin = "";
+
+                const pinContainer = document.querySelector('.pin-container-set-admin-confirm');
+                pinContainer.classList.add('shake');
+                setTimeout(() => pinContainer.classList.remove('shake'), 500);
+                const pinContainerConfirm = document.querySelector('.pin-container-set-admin');
+                pinContainerConfirm.classList.add('shake');
+                setTimeout(() => pinContainerConfirm.classList.remove('shake'), 500);
+
+                focusInputSetAdmin();
+			});
+        }
+
 		function attemptLogin(pin, isAdmin) {
 			fetch('/login', {
 				method: 'POST',
