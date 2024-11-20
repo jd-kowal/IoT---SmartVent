@@ -23,13 +23,18 @@ class Storage:
             "min": 10,
             "max": 31
         }
-        self.temperature_toggle = None
+        self.temperature_toggle = True
         self.temperature = None
-        self.noise_level_threshold = False
-        self.noise_level_toggle = None
+        self.noise_level_threshold = "medium"
+        self.noise_level_toggle = True
         self.noise_level = None
+        self.noise_level_map = {
+            "low": 0,
+            "medium": 0.3,
+            "high": 0.6
+        }
         self.air_quality_threshold = "moderate"
-        self.air_quality_toggle = None
+        self.air_quality_toggle = True
         self.air_quality_real = None
         self.air_quality_user_friendly = None
         self.air_quality_map = {
@@ -90,20 +95,26 @@ app_data.load()
 
 
 def should_window_open():
-    if app_data.noise_level_toggle and bool(app_data.noise_level) > bool(app_data.noise_level_threshold):
-        print(f"> Noise not met - thresh={app_data.noise_level_threshold} noise={app_data.noise_level}")
+    if app_data.noise_level_toggle:
+        for level, _ in sorted(app_data.noise_level_map.items(), key=lambda item: item[1]):
+            if level == app_data.noise_level:
+                break
+            if level == app_data.noise_level_threshold:
+                print(f"> Noise not met - thresh={app_data.noise_level_threshold} noise={app_data.noise_level}")
+                return False
+    # bool(app_data.noise_level) > bool(app_data.noise_level_threshold):
+    #     print(f"> Noise not met - thresh={app_data.noise_level_threshold} noise={app_data.noise_level}")
         return False
-    if app_data.temperature_toggle and app_data.temperature > app_data.temperature_threshold["max"] or app_data.temperature < app_data.temperature_threshold["min"]:
+    if app_data.temperature_toggle and (app_data.temperature > app_data.temperature_threshold["max"] or app_data.temperature < app_data.temperature_threshold["min"]):
         print(f"> Temp not met - thresh={app_data.temperature_threshold} temp={app_data.temperature}")
         return False
-    if not app_data.air_quality_toggle:
-        return True
-    for level, _ in sorted(app_data.air_quality_map.items(), key=lambda item: item[1]):
-        if level == app_data.air_quality_user_friendly:
-            break
-        if level == app_data.air_quality_threshold:
-            print(f"> Air not met - thresh={app_data.air_quality_threshold} air={app_data.air_quality_user_friendly}")
-            return False
+    if app_data.air_quality_toggle:
+        for level, _ in sorted(app_data.air_quality_map.items(), key=lambda item: item[1]):
+            if level == app_data.air_quality_user_friendly:
+                break
+            if level == app_data.air_quality_threshold:
+                print(f"> Air not met - thresh={app_data.air_quality_threshold} air={app_data.air_quality_user_friendly}")
+                return False
     return True
 
 
@@ -134,7 +145,7 @@ def setVals():
     return
 
 
-DATA_INTERVAL_SECONDS = 60
+DATA_INTERVAL_SECONDS = 6
 
 scheduler = BackgroundScheduler()
 scheduler.add_job(func=setVals, trigger="interval", seconds=DATA_INTERVAL_SECONDS)
@@ -348,12 +359,15 @@ def get_noise_level():
 
 def set_noise_level():
     noise_levels = []
-    for _ in range(6):
+    for _ in range(20):
         noise_levels.append(getNoiseLevel())
-        sleep(1)
+        sleep(0.1)
     print(noise_levels)
-    app_data.noise_level = sum(noise_levels) >= 3
-    app_data.save()
+    for level, value in sorted(app_data.noise_level_map.items(), key=lambda item: item[1], reverse=True):
+        if sum(noise_levels)/len(noise_levels) >= value:
+            app_data.noise_level = level
+            app_data.save()
+            return
 
 
 @app.route('/setNoiseLevelThreshold', methods=['POST'])
