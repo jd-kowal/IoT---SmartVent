@@ -166,7 +166,7 @@ def setVals():
     return
 
 
-DATA_INTERVAL_SECONDS = 6
+DATA_INTERVAL_SECONDS = 60
 
 scheduler = BackgroundScheduler()
 scheduler.add_job(func=setVals, trigger="interval", seconds=DATA_INTERVAL_SECONDS)
