@@ -4,12 +4,12 @@
     --goodQuality: #90EE90; /* Twoj zielony z suwakow */
     --err: #8B0000; /* Kolor dla erroru idk, na razie  ciemny red*/
 	
-    --youdeadTemp: #D7D7FF;
-    --veryLowTemp: #00FFFF;
-    --coldTemp: #0000FF;
-    --moderateTemp: #00FF7F;
-    --highTemp: #FFFF00;
-    --veryHighTemp: #FF0000;
+    --youdeadTemp: #D7D7FF;  /* - 40 C */
+    --veryLowTemp: #00FFFF;  /* - 10 C */
+    --coldTemp: #0000FF;     /* + 10 C */
+    --moderateTemp: #00FF7F; /* + 20 C */
+    --highTemp: #FFFF00;     /* + 30 C */
+    --veryHighTemp: #FF0000; /* + 40 C */
 }
 * {
 	box-sizing: border-box;
