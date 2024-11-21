@@ -408,6 +408,30 @@ def set_noise_level():
             return
 
 
+@app.route('/setNoiseLevelMap', methods=['POST'])
+def set_noise_level_map():
+    try:
+        data = request.get_json()
+
+        if not data or 'low' not in data or 'medium' not in data or 'high' not in data:
+            return jsonify({"error": "Invalid input. Must include low, medium, and high levels."}), 400
+
+        for _, v in data.items():
+            if v > 1 or v < 0:
+                return jsonify({"error": "Invalid input. low, medium, and high levels must be between 0 and 1."}), 400
+
+        app_data.noise_level_map = {
+            "low": float(data.get("low")),
+            "medium": float(data.get("medium")),
+            "high": float(data.get("high"))
+        }
+        app_data.save()
+        return jsonify({"message": "Noise level map updated successfully.", "noise_level_map": app_data.noise_level_map}), 200
+
+    except Exception as e:
+        return jsonify({"error": str(e)}), 400
+
+
 @app.route('/setNoiseLevelThreshold', methods=['POST'])
 def set_noise_level_threshold():
     noise_level_threshold = request.json.get('noise_level_threshold')

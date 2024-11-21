@@ -334,6 +334,102 @@
             }
          }
       },
+      "/setNoiseLevelMap": {
+         "post": {
+           "summary": "Set Noise Level Map",
+           "description": "Updates the noise level thresholds for 'low', 'medium', and 'high' categories. Thresholds represent ratio of loud noises. If ratio is 0.4, that means 40% of the noises were loud.",
+           "requestBody": {
+             "required": true,
+             "content": {
+               "application/json": {
+                 "schema": {
+                   "type": "object",
+                   "properties": {
+                     "low": {
+                       "type": "number",
+                       "format": "float",
+                       "minimum": 0,
+                       "maximum": 1,
+                       "description": "Noise level threshold for the 'low' category."
+                     },
+                     "medium": {
+                       "type": "number",
+                       "format": "float",
+                       "minimum": 0,
+                       "maximum": 1,
+                       "description": "Noise level threshold for the 'medium' category."
+                     },
+                     "high": {
+                       "type": "number",
+                       "format": "float",
+                       "minimum": 0,
+                       "maximum": 1,
+                       "description": "Noise level threshold for the 'high' category."
+                     }
+                   },
+                   "required": ["low", "medium", "high"],
+                   "example": {
+                     "low": 0.0,
+                     "medium": 0.3,
+                     "high": 0.6
+                   }
+                 }
+               }
+             }
+           },
+           "responses": {
+             "200": {
+               "description": "Noise level map updated successfully.",
+               "content": {
+                 "application/json": {
+                   "schema": {
+                     "type": "object",
+                     "properties": {
+                       "message": {
+                         "type": "string",
+                         "example": "Noise level map updated successfully."
+                       },
+                       "noise_level_map": {
+                         "type": "object",
+                         "properties": {
+                           "low": {
+                             "type": "number",
+                             "example": 0.0
+                           },
+                           "medium": {
+                             "type": "number",
+                             "example": 0.3
+                           },
+                           "high": {
+                             "type": "number",
+                             "example": 0.6
+                           }
+                         }
+                       }
+                     }
+                   }
+                 }
+               }
+             },
+             "400": {
+               "description": "Invalid input or server error.",
+               "content": {
+                 "application/json": {
+                   "schema": {
+                     "type": "object",
+                     "properties": {
+                       "error": {
+                         "type": "string",
+                         "example": "Invalid input. Must include low, medium, and high levels."
+                       }
+                     }
+                   }
+                 }
+               }
+             }
+           }
+         }
+       },
       "/setNoiseLevelThreshold": {
          "post": {
             "summary": "Set Noise Level Threshold",
