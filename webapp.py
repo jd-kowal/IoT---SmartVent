@@ -150,6 +150,10 @@ def setVals():
     set_temperature()
     print(f"[{enabled_symbol(app_data.temperature_toggle)}] Temperature: {app_data.temperature}")
 
+    if app_data.window_state_toggle:
+        print("Window is force closed by user")
+        return
+
     if should_window_open():
         if not app_data.is_window_open:
             set_window_angle(app_data.window_open_angle)
@@ -469,11 +473,14 @@ def set_window_state_toggle():
     if window_state_toggle is None:
         return 'Missing window_state_toggle parameter', 400
 
+    # If toggled, close window if open
+    if window_state_toggle and app_data.is_window_open:
+        set_window_angle(app_data.window_closed_angle)
+        app_data.is_window_open = False
+        print("** Window Closed Manually **")
+
     app_data.window_state_toggle = window_state_toggle
     app_data.save()
-
-    if window_state_toggle:
-        print('Close window')
 
     return '', 204
 
