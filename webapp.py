@@ -1,4 +1,4 @@
-from flask import Flask, render_template, request, redirect, session, url_for, jsonify
+from flask import Flask, render_template, request, redirect, session, url_for, jsonify, Response
 from datetime import timedelta, datetime
 import os
 import json
@@ -131,7 +131,6 @@ def should_window_open() -> bool:
                 print(f"> Air not met - thresh={app_data.air_quality_threshold} air={app_data.air_quality_user_friendly}")
                 return False
     return True
-
 
 def setVals():
     if app_data.air_quality_map is None:
@@ -607,7 +606,63 @@ def get_is_window_open():
 
 @app.route('/metrics', methods=['GET'])
 def metrics():
-    return jsonify(app_data.__dict__), 200
+    air_quality_metrics = "\n".join(
+        [f'air_quality_map{{quality="{key}"}} {value}' for key, value in app_data.air_quality_map.items()]
+    )
+
+    metrics = [
+        f"# HELP temperature_toggle Indicates if temperature monitoring is enabled.",
+        f"# TYPE temperature_toggle gauge",
+        f"temperature_toggle {1 if app_data.temperature_toggle else 0}",
+
+        f"# HELP noise_level_toggle Indicates if noise level monitoring is enabled.",
+        f"# TYPE noise_level_toggle gauge",
+        f"noise_level_toggle {1 if app_data.noise_level_toggle else 0}",
+
+        f"# HELP air_quality_toggle Indicates if air quality monitoring is enabled.",
+        f"# TYPE air_quality_toggle gauge",
+        f"air_quality_toggle {1 if app_data.air_quality_toggle else 0}",
+
+        f"# HELP window_open_angle The angle of the window when it is open.",
+        f"# TYPE window_open_angle gauge",
+        f"window_open_angle {app_data.window_open_angle}",
+
+        f"# HELP window_closed_angle The angle of the window when it is closed.",
+        f"# TYPE window_closed_angle gauge",
+        f"window_closed_angle {app_data.window_closed_angle}",
+
+        f"# HELP automation_timer_toggle Indicates if the automation timer is enabled.",
+        f"# TYPE automation_timer_toggle gauge",
+        f"automation_timer_toggle {1 if app_data.automation_timer_toggle else 0}",
+        air_quality_metrics
+    ]
+
+    if app_data.temperature_threshold:
+        metrics.append(f"# HELP temperature_threshold_min Minimum temperature threshold.")
+        metrics.append(f"# TYPE temperature_threshold_min gauge")
+        metrics.append(f"temperature_threshold_min {app_data.temperature_threshold['min']}")
+
+        metrics.append(f"# HELP temperature_threshold_max Maximum temperature threshold.")
+        metrics.append(f"# TYPE temperature_threshold_max gauge")
+        metrics.append(f"temperature_threshold_max {app_data.temperature_threshold['max']}")
+
+    metrics.append(f"# HELP temperature Current temperature.")
+    metrics.append(f"# TYPE temperature gauge")
+    metrics.append(f"temperature {app_data.temperature if app_data.temperature is not None else 'NaN'}")
+
+    NOISE_LEVEL_MAP = {"low": 1, "medium": 2, "high": 3}
+    noise_level_value = NOISE_LEVEL_MAP.get(app_data.noise_level_threshold, 0)
+    metrics.append(f"# HELP noise_level Current noise level.")
+    metrics.append(f"# TYPE noise_level gauge")
+    metrics.append(f"noise_level {noise_level_value}")
+
+    metrics.append(f"# HELP air_quality_real Real-time air quality value.")
+    metrics.append(f"# TYPE air_quality_real gauge")
+    metrics.append(f"air_quality_real {app_data.air_quality_real if app_data.air_quality_real is not None else 'NaN'}")
+
+
+    return Response("\n".join(metrics), mimetype="text/plain")
+
 
 
 if __name__ == '__main__':
