@@ -238,3 +238,4 @@ app_data.json
 env/
 
 .vscode/
+docker/prometheus/prometheus_db/*

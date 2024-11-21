@@ -152,7 +152,7 @@
 
 		<div class="footer">
 			<div class="footer-section" id="home-section">
-				<span class="footer-icon">&#8962;</span>
+				<span class="footer-icon">&#x2B8C;</span>
 			</div>
 			<div class="footer-section" id="settings-section">
 				<span class="footer-icon">&#9881;</span>
@@ -203,13 +203,13 @@
 			let smiley = '';
 			if (airQuality === 'good') {
 				smiley = '😊';
-				color = getComputedStyle(document.documentElement).getPropertyValue('--poorQuality');
+				color = getComputedStyle(document.documentElement).getPropertyValue('--goodQuality');
 			} else if (airQuality === 'moderate') {
 				smiley = '😐';
 				color = getComputedStyle(document.documentElement).getPropertyValue('--moderateQuality');
 			} else if (airQuality === 'poor') {
 				smiley = '😷';
-				color = getComputedStyle(document.documentElement).getPropertyValue('--goodQuality');
+				color = getComputedStyle(document.documentElement).getPropertyValue('--poorQuality');
 			} else {
 				smiley = '❓';
 				color = getComputedStyle(document.documentElement).getPropertyValue('--err');
@@ -281,6 +281,7 @@
 				{ temp: 10, color: getComputedStyle(document.documentElement).getPropertyValue('--coldTemp').trim() },
 				{ temp: 20, color: getComputedStyle(document.documentElement).getPropertyValue('--moderateTemp').trim() },
 				{ temp: 30, color: getComputedStyle(document.documentElement).getPropertyValue('--highTemp').trim() },
+				{ temp: 40, color: getComputedStyle(document.documentElement).getPropertyValue('--veryHighTemp').trim() },
 				{ temp: 100, color: getComputedStyle(document.documentElement).getPropertyValue('--veryHighTemp').trim() },
 			];
 
@@ -405,15 +406,44 @@
 			});
 		}
 		function refreshWindowState(state) {
-			if(state){
-				windowImage.src = "{{ url_for('static', filename='assets/window_opened.webp') }}";
-				windowImage.alt = "window is OPENED";
-				windowStatus.textContent = "OPENED";
-			}else{
-				windowImage.src = "{{ url_for('static', filename='assets/window_closed.webp') }}";
-				windowImage.alt = "window is CLOSED";
-				windowStatus.textContent = "CLOSED";
-			}
+			// old
+			// if(state){
+			// 	windowImage.src = "{{ url_for('static', filename='assets/window_opened.webp') }}";
+			// 	windowImage.alt = "window is OPENED";
+			// 	windowStatus.textContent = "OPENED";
+			// }else{
+			// 	windowImage.src = "{{ url_for('static', filename='assets/window_closed.webp') }}";
+			// 	windowImage.alt = "window is CLOSED";
+			// 	windowStatus.textContent = "CLOSED";
+			// }
+
+			// new
+			fetch('/isWindowOpen', {
+				method: 'GET',
+				headers: {
+					'Content-Type': 'application/json',
+				},
+			})
+			.then((response) => {
+				if (!response.ok) {
+					throw new Error(`HTTP error! status: ${response.status}`);
+				}
+				return response.json();
+			})
+			.then((data) => {
+				if (data.is_window_open) {
+					windowImage.src = "{{ url_for('static', filename='assets/window_opened.webp') }}";
+					windowImage.alt = "window is OPENED";
+					windowStatus.textContent = "OPENED";
+				} else {
+					windowImage.src = "{{ url_for('static', filename='assets/window_closed.webp') }}";
+					windowImage.alt = "window is CLOSED";
+					windowStatus.textContent = "CLOSED";
+				}
+			})
+			.catch((error) => {
+				console.error('Error fetching window state:', error);
+			});
 		}
 		windowImage.addEventListener('click', async () => {
 			if (windowStatus.textContent.trim().toUpperCase() === 'CLOSED') {
@@ -431,14 +461,14 @@
 		});
 
 		document.getElementById('home-section').addEventListener('click', () => {
-			window.location.href = '/';
+			window.location.href = '/logout';
 		});
 
 		document.getElementById('settings-section').addEventListener('click', () => {
 			window.location.href = '/settingsUser';
 		});
 
-        window.onload = function() {
+		function refreshAll() {
 			const loadedTemp = parseFloat(localStorage.getItem('temp'));
 			if(loadedTemp != "err") refreshTemp(loadedTemp);
 			const loadedAirQuality = localStorage.getItem('air_quality');
@@ -451,6 +481,11 @@
 			fetchAirQuality();
 			fetchNoiseLevel();
 		};
+        window.onload = function() {
+			refreshAll();
+			setInterval(refreshAll, 10000);
+		};
+
 	</script>
 </body>
 </html>

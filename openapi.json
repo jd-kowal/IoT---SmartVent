@@ -1,766 +1,875 @@
 {
-    "openapi":"3.0.0",
-    "info":{
-       "title":"SmartVent API",
-       "version":"1.0.0",
-       "description":"API for managing and monitoring SmartVent."
-    },
-    "servers":[
-       {
-          "url":"http://localhost:5000",
-          "description":"Local server"
-       }
-    ],
-    "paths":{
-       "/":{
-          "get":{
-             "summary":"Home Page",
-             "description":"Displays the home page with status information and navigation options.",
-             "responses":{
-                "200":{
-                   "description":"HTML content of the home page."
-                }
-             }
-          }
-       },
-       "/setUserPin":{
-          "post":{
-             "summary":"Set User PIN",
-             "description":"Sets a 4-digit PIN for user authentication.",
-             "requestBody":{
-                "required":true,
-                "content":{
-                   "application/json":{
-                      "schema":{
-                         "type":"object",
-                         "properties":{
-                            "pin1":{
-                               "type":"string",
-                               "description":"User PIN"
-                            },
-                            "pin2":{
-                               "type":"string",
-                               "description":"User PIN confirmation"
-                            }
-                         },
-                         "required":[
-                            "pin1",
-                            "pin2"
-                         ]
-                      }
-                   }
-                }
-             },
-             "responses":{
-                "204":{
-                   "description":"User PIN set successfully."
-                },
-                "400":{
-                   "description":"Validation error for PIN."
-                }
-             }
-          }
-       },
-       "/setAdminPin":{
-          "post":{
-             "summary":"Set Admin PIN",
-             "description":"Sets an 8-digit PIN for admin authentication.",
-             "requestBody":{
-                "required":true,
-                "content":{
-                   "application/json":{
-                      "schema":{
-                         "type":"object",
-                         "properties":{
-                            "pin1":{
-                               "type":"string",
-                               "description":"Admin PIN"
-                            },
-                            "pin2":{
-                               "type":"string",
-                               "description":"Admin PIN confirmation"
-                            }
-                         },
-                         "required":[
-                            "pin1",
-                            "pin2"
-                         ]
-                      }
-                   }
-                }
-             },
-             "responses":{
-                "200":{
-                   "description":"Admin PIN set successfully."
-                },
-                "400":{
-                   "description":"Validation error for PIN."
-                }
-             }
-          }
-       },
-       "/login":{
-          "post":{
-             "summary":"Login",
-             "description":"Logs the user in based on the provided PIN.",
-             "requestBody":{
-                "required":true,
-                "content":{
-                   "application/json":{
-                      "schema":{
-                         "type":"object",
-                         "properties":{
-                            "pin":{
-                               "type":"string",
-                               "description":"The PIN for the user or admin."
-                            }
-                         },
-                         "required":[
-                            "pin"
-                         ]
-                      }
-                   }
-                }
-             },
-             "responses":{
-                "302":{
-                   "description":"Redirects to the appropriate dashboard (user or admin)."
-                },
-                "403":{
-                   "description":"Invalid PIN provided."
-                }
-             }
-          }
-       },
-       "/logout":{
-          "get":{
-             "summary":"Logout",
-             "description":"Logs out the current user or admin.",
-             "responses":{
-                "302":{
-                   "description":"Redirect to the home page."
-                }
-             }
-          }
-       },
-       "/settingsUser":{
-          "get":{
-             "summary":"User Settings",
-             "description":"Displays user settings page.",
-             "responses":{
-                "200":{
-                   "description":"HTML content of the user settings page."
-                }
-             }
-          }
-       },
-       "/mainMenu":{
-          "get":{
-             "summary":"Main Menu",
-             "description":"Displays the main menu for navigation.",
-             "responses":{
-                "200":{
-                   "description":"HTML content of the main menu."
-                }
-             }
-          }
-       },
-       "/userDashboard":{
-          "get":{
-             "summary":"User Dashboard",
-             "description":"Displays the user dashboard.",
-             "responses":{
-                "200":{
-                   "description":"HTML content of the user dashboard."
-                }
-             }
-          }
-       },
-       "/adminDashboard":{
-          "get":{
-             "summary":"Admin Dashboard",
-             "description":"Displays the admin dashboard with secret information.",
-             "responses":{
-                "200":{
-                   "description":"HTML content of the admin dashboard.",
-                   "content":{
-                      "application/json":{
-                         "schema":{
-                            "type":"object",
-                            "properties":{
-                               "secret":{
-                                  "type":"string",
-                                  "description":"Admin secret data"
-                               }
-                            }
-                         }
-                      }
-                   }
-                }
-             }
-          }
-       },
-       "/getAirQuality":{
-          "get":{
-             "summary":"Get Air Quality",
-             "description":"Fetches the current air quality in a user-friendly format.",
-             "responses":{
-                "200":{
-                   "description":"Current air quality.",
-                   "content":{
-                      "application/json":{
-                         "schema":{
-                            "type":"object",
-                            "properties":{
-                               "air_quality":{
-                                  "type":"string",
-                                  "description":"Air quality level"
-                               }
-                            }
-                         }
-                      }
-                   }
-                }
-             }
-          }
-       },
-       "/setAirQualityMap":{
-          "get":{
-             "summary":"Get Air Quality Map",
-             "description":"Displays the air quality map settings page.",
-             "responses":{
-                "200":{
-                   "description":"HTML content of the air quality map settings page."
-                }
-             }
-          },
-          "post":{
-             "summary":"Set Air Quality Map",
-             "description":"Updates the air quality map ranges.",
-             "requestBody":{
-                "required":true,
-                "content":{
-                   "application/json":{
-                      "schema":{
-                         "type":"object",
-                         "properties":{
-                            "good":{
-                               "type":"object",
-                               "properties":{
-                                  "start":{
-                                     "type":"number"
-                                  },
-                                  "end":{
-                                     "type":"number"
-                                  }
-                               }
-                            },
-                            "moderate":{
-                               "type":"object",
-                               "properties":{
-                                  "start":{
-                                     "type":"number"
-                                  },
-                                  "end":{
-                                     "type":"number"
-                                  }
-                               }
-                            },
-                            "poor":{
-                               "type":"object",
-                               "properties":{
-                                  "start":{
-                                     "type":"number"
-                                  },
-                                  "end":{
-                                     "type":"number"
-                                  }
-                               }
-                            }
-                         },
-                         "required":[
-                            "good",
-                            "moderate",
-                            "poor"
-                         ]
-                      }
-                   }
-                }
-             },
-             "responses":{
-                "200":{
-                   "description":"Air quality map updated successfully.",
-                   "content":{
-                      "application/json":{
-                         "schema":{
-                            "type":"object",
-                            "properties":{
-                               "message":{
-                                  "type":"string"
-                               },
-                               "air_quality_map":{
-                                  "type":"object"
-                               }
-                            }
-                         }
-                      }
-                   }
-                },
-                "400":{
-                   "description":"Invalid input data."
-                }
-             }
-          }
-       },
-       "/getNoiseLevel":{
-          "get":{
-             "summary":"Get Noise Level",
-             "description":"Fetches the current noise level.",
-             "responses":{
-                "200":{
-                   "description":"Current noise level.",
-                   "content":{
-                      "application/json":{
-                         "schema":{
-                            "type":"object",
-                            "properties":{
-                               "noise_level":{
-                                  "type":"number",
-                                  "description":"Noise level in dB"
-                               }
-                            }
-                         }
-                      }
-                   }
-                }
-             }
-          }
-       },
-       "/setNoiseLevelThreshold":{
-          "post":{
-             "summary":"Set Noise Level Threshold",
-             "description":"Sets the threshold for acceptable noise levels.",
-             "requestBody":{
-                "required":true,
-                "content":{
-                   "application/json":{
-                      "schema":{
-                         "type":"object",
-                         "properties":{
-                            "noise_level_threshold":{
-                               "type":"number",
-                               "description":"Threshold value for noise level"
-                            }
-                         },
-                         "required":[
-                            "noise_level_threshold"
-                         ]
-                      }
-                   }
-                }
-             },
-             "responses":{
-                "204":{
-                   "description":"Threshold set successfully."
-                },
-                "400":{
-                   "description":"Missing noise level threshold parameter."
-                }
-             }
-          }
-       },
-       "/setAirQualityThreshold":{
-          "post":{
-             "summary":"Set Air Quality Threshold",
-             "description":"Sets the threshold for acceptable air quality.",
-             "requestBody":{
-                "required":true,
-                "content":{
-                   "application/json":{
-                      "schema":{
-                         "type":"object",
-                         "properties":{
-                            "air_quality_threshold":{
-                               "type":"number",
-                               "description":"Threshold value for air quality"
-                            }
-                         },
-                         "required":[
-                            "air_quality_threshold"
-                         ]
-                      }
-                   }
-                }
-             },
-             "responses":{
-                "204":{
-                   "description":"Threshold set successfully."
-                },
-                "400":{
-                   "description":"Missing air quality threshold parameter."
-                }
-             }
-          }
-       },
-       "/setAirQualityToggle":{
-          "post":{
-             "summary":"Set Air Quality Toggle",
-             "description":"Sets the toggle for air quality monitoring.",
-             "requestBody":{
-                "required":true,
-                "content":{
-                   "application/json":{
-                      "schema":{
-                         "type":"object",
-                         "properties":{
-                            "air_quality_toggle":{
-                               "type":"boolean",
-                               "description":"Toggle value for air quality monitoring."
-                            }
-                         },
-                         "required":[
-                            "air_quality_toggle"
-                         ]
-                      }
-                   }
-                }
-             },
-             "responses":{
-                "204":{
-                   "description":"The air quality toggle was successfully set."
-                },
-                "400":{
-                   "description":"Missing or invalid `air_quality_toggle` parameter."
-                }
-             }
-          }
-       },
-       "/setNoiseLevelToggle":{
-          "post":{
-             "summary":"Set Noise Level Toggle",
-             "description":"Sets the toggle for the noise level monitoring.",
-             "requestBody":{
-                "required":true,
-                "content":{
-                   "application/json":{
-                      "schema":{
-                         "type":"object",
-                         "properties":{
-                            "noise_level_toggle":{
-                               "type":"boolean",
-                               "description":"Toggle value for noise level monitoring."
-                            }
-                         },
-                         "required":[
-                            "noise_level_toggle"
-                         ]
-                      }
-                   }
-                }
-             },
-             "responses":{
-                "204":{
-                   "description":"The noise level toggle was successfully set."
-                },
-                "400":{
-                   "description":"Missing or invalid `noise_level_toggle` parameter."
-                }
-             }
-          }
-       },
-       "/getTemperature":{
-          "get":{
-             "summary":"Get Temperature",
-             "description":"Fetches the current temperature.",
-             "responses":{
-                "200":{
-                   "description":"Current temperature.",
-                   "content":{
-                      "application/json":{
-                         "schema":{
-                            "type":"object",
-                            "properties":{
-                               "temperature":{
-                                  "type":"number",
-                                  "description":"Temperature in degrees Celsius"
-                               }
-                            }
-                         }
-                      }
-                   }
-                }
-             }
-          }
-       },
-       "/setTemperatureThreshold":{
-          "post":{
-             "summary":"Set Temperature Threshold",
-             "description":"Sets the temperature threshold with minimum and maximum values.",
-             "requestBody":{
-                "required":true,
-                "content":{
-                   "application/json":{
-                      "schema":{
-                         "type":"object",
-                         "properties":{
-                            "temperature_threshold":{
-                               "type":"object",
-                               "properties":{
-                                  "min":{
-                                     "type":"number",
-                                     "description":"Minimum temperature threshold."
-                                  },
-                                  "max":{
-                                     "type":"number",
-                                     "description":"Maximum temperature threshold."
-                                  }
-                               },
-                               "required":[
-                                  "min",
-                                  "max"
-                               ]
-                            }
-                         },
-                         "required":[
-                            "temperature_threshold"
-                         ]
-                      }
-                   }
-                }
-             },
-             "responses":{
-                "204":{
-                   "description":"The temperature threshold was successfully set."
-                },
-                "400":{
-                   "description":"Missing or invalid `temperature_threshold` parameter."
-                }
-             }
-          }
-       },
-       "/setTemperatureToggle":{
-          "post":{
-             "summary":"Set Temperature Toggle",
-             "description":"Sets the toggle for temperature monitoring.",
-             "requestBody":{
-                "required":true,
-                "content":{
-                   "application/json":{
-                      "schema":{
-                         "type":"object",
-                         "properties":{
-                            "temperature_toggle":{
-                               "type":"boolean",
-                               "description":"Toggle value for temperature monitoring."
-                            }
-                         },
-                         "required":[
-                            "temperature_toggle"
-                         ]
-                      }
-                   }
-                }
-             },
-             "responses":{
-                "204":{
-                   "description":"The temperature toggle was successfully set."
-                },
-                "400":{
-                   "description":"Missing or invalid `temperature_toggle` parameter."
-                }
-             }
-          }
-       },
-       "/setWindowStateTimer":{
-          "post":{
-             "summary":"Set Window State Timer",
-             "description":"Sets the timer for automatic window state adjustment.",
-             "requestBody":{
-                "required":true,
-                "content":{
-                   "application/json":{
-                      "schema":{
-                         "type":"object",
-                         "properties":{
-                            "window_state_timer":{
-                               "type":"number",
-                               "description":"Timer duration in seconds"
-                            }
-                         },
-                         "required":[
-                            "window_state_timer"
-                         ]
-                      }
-                   }
-                },
-                "responses":{
-                   "204":{
-                      "description":"Timer set successfully."
-                   },
-                   "400":{
-                      "description":"Missing window state timer parameter."
-                   }
-                }
-             }
-          }
-       },
-       "/setWindowStateToggle":{
-          "post":{
-             "summary":"Set Window State Toggle",
-             "description":"Sets the toggle state for windows.",
-             "requestBody":{
-                "required":true,
-                "content":{
-                   "application/json":{
-                      "schema":{
-                         "type":"object",
-                         "properties":{
-                            "window_state_toggle":{
-                               "type":"boolean",
-                               "description":"Toggle state for windows"
-                            }
-                         },
-                         "required":[
-                            "window_state_toggle"
-                         ]
-                      }
-                   }
-                },
-                "responses":{
-                   "204":{
-                      "description":"Toggle state set successfully."
-                   },
-                   "400":{
-                      "description":"Missing window state toggle parameter."
-                   }
-                }
-             }
-          }
-       },
-       "/setAutomationTimer":{
-          "post":{
-             "summary":"Set Automation Timer",
-             "description":"Sets the start and end times for the automation timer.",
-             "requestBody":{
-                "required":true,
-                "content":{
-                   "application/json":{
-                      "schema":{
-                         "type":"object",
-                         "properties":{
-                            "automation_timer":{
-                               "type":"object",
-                               "description":"Start and end times for the automation timer.",
-                               "properties":{
-                                  "start":{
-                                     "type":"string",
-                                     "format":"time",
-                                     "description":"Start time in HH:MM:SS format."
-                                  },
-                                  "end":{
-                                     "type":"string",
-                                     "format":"time",
-                                     "description":"End time in HH:MM:SS format."
-                                  }
-                               },
-                               "required":[
-                                  "start",
-                                  "end"
-                               ]
-                            }
-                         },
-                         "required":[
-                            "automation_timer"
-                         ]
-                      }
-                   }
-                }
-             },
-             "responses":{
-                "204":{
-                   "description":"The timer was successfully set."
-                },
-                "400":{
-                   "description":"Missing or invalid `automation_timer` parameter."
-                }
-             }
-          }
-       },
-       "/setAutomationTimerToggle":{
-          "post":{
-             "summary":"Set Automation Timer Toggle",
-             "description":"Sets the toggle for the automation timer.",
-             "requestBody":{
-                "required":true,
-                "content":{
-                   "application/json":{
-                      "schema":{
-                         "type":"object",
-                         "properties":{
-                            "automation_timer_toggle":{
-                               "type":"boolean",
-                               "description":"Toggle value for the automation timer."
-                            }
-                         },
-                         "required":[
-                            "automation_timer_toggle"
-                         ]
-                      }
-                   }
-                }
-             },
-             "responses":{
-                "204":{
-                   "description":"The toggle was successfully set."
-                },
-                "400":{
-                   "description":"Missing or invalid `automation_timer_toggle` parameter."
-                }
-             }
-          }
-       },
-       "/isWindowOpen":{
-          "get":{
-             "summary":"Check Window State",
-             "description":"Returns whether the window is open or not.",
-             "responses":{
-                "200":{
-                   "description":"Returns the window state.",
-                   "content":{
-                      "application/json":{
-                         "schema":{
-                            "type":"object",
-                            "properties":{
-                               "is_window_open":{
-                                  "type":"boolean",
-                                  "description":"True if the window is open, false otherwise."
-                               }
-                            }
-                         }
-                      }
-                   }
-                }
-             }
-          }
-       },
-       "/metrics":{
-          "get":{
-             "summary":"Fetch Metrics",
-             "description":"Fetches all stored metrics and thresholds.",
-             "responses":{
-                "200":{
-                   "description":"All metrics fetched successfully.",
-                   "content":{
-                      "application/json":{
-                         "schema":{
-                            "type":"object",
-                            "additionalProperties":true
-                         }
-                      }
-                   }
-                }
-             }
-          }
-       }
-    }
- }
+   "openapi": "3.0.0",
+   "info": {
+      "title": "SmartVent API",
+      "version": "1.0.0",
+      "description": "API for managing and monitoring SmartVent."
+   },
+   "servers": [{
+      "url": "http://localhost:5000",
+      "description": "Local server"
+   }],
+   "paths": {
+      "/": {
+         "get": {
+            "summary": "Home Page",
+            "description": "Displays the home page with status information and navigation options.",
+            "responses": {
+               "200": {
+                  "description": "HTML content of the home page."
+               }
+            }
+         }
+      },
+      "/setUserPin": {
+         "post": {
+            "summary": "Set User PIN",
+            "description": "Sets a 4-digit PIN for user authentication.",
+            "requestBody": {
+               "required": true,
+               "content": {
+                  "application/json": {
+                     "schema": {
+                        "type": "object",
+                        "properties": {
+                           "pin1": {
+                              "type": "string",
+                              "description": "User PIN"
+                           },
+                           "pin2": {
+                              "type": "string",
+                              "description": "User PIN confirmation"
+                           }
+                        },
+                        "required": [
+                           "pin1",
+                           "pin2"
+                        ]
+                     }
+                  }
+               }
+            },
+            "responses": {
+               "204": {
+                  "description": "User PIN set successfully."
+               },
+               "400": {
+                  "description": "Validation error for PIN."
+               }
+            }
+         }
+      },
+      "/setAdminPin": {
+         "post": {
+            "summary": "Set Admin PIN",
+            "description": "Sets an 8-digit PIN for admin authentication.",
+            "requestBody": {
+               "required": true,
+               "content": {
+                  "application/json": {
+                     "schema": {
+                        "type": "object",
+                        "properties": {
+                           "pin1": {
+                              "type": "string",
+                              "description": "Admin PIN"
+                           },
+                           "pin2": {
+                              "type": "string",
+                              "description": "Admin PIN confirmation"
+                           }
+                        },
+                        "required": [
+                           "pin1",
+                           "pin2"
+                        ]
+                     }
+                  }
+               }
+            },
+            "responses": {
+               "200": {
+                  "description": "Admin PIN set successfully."
+               },
+               "400": {
+                  "description": "Validation error for PIN."
+               }
+            }
+         }
+      },
+      "/login": {
+         "post": {
+            "summary": "Login",
+            "description": "Logs the user in based on the provided PIN.",
+            "requestBody": {
+               "required": true,
+               "content": {
+                  "application/json": {
+                     "schema": {
+                        "type": "object",
+                        "properties": {
+                           "pin": {
+                              "type": "string",
+                              "description": "The PIN for the user or admin."
+                           }
+                        },
+                        "required": [
+                           "pin"
+                        ]
+                     }
+                  }
+               }
+            },
+            "responses": {
+               "302": {
+                  "description": "Redirects to the appropriate dashboard (user or admin)."
+               },
+               "403": {
+                  "description": "Invalid PIN provided."
+               }
+            }
+         }
+      },
+      "/logout": {
+         "get": {
+            "summary": "Logout",
+            "description": "Logs out the current user or admin.",
+            "responses": {
+               "302": {
+                  "description": "Redirect to the home page."
+               }
+            }
+         }
+      },
+      "/settingsUser": {
+         "get": {
+            "summary": "User Settings",
+            "description": "Displays user settings page.",
+            "responses": {
+               "200": {
+                  "description": "HTML content of the user settings page."
+               }
+            }
+         }
+      },
+      "/mainMenu": {
+         "get": {
+            "summary": "Main Menu",
+            "description": "Displays the main menu for navigation.",
+            "responses": {
+               "200": {
+                  "description": "HTML content of the main menu."
+               }
+            }
+         }
+      },
+      "/userDashboard": {
+         "get": {
+            "summary": "User Dashboard",
+            "description": "Displays the user dashboard.",
+            "responses": {
+               "200": {
+                  "description": "HTML content of the user dashboard."
+               }
+            }
+         }
+      },
+      "/adminDashboard": {
+         "get": {
+            "summary": "Admin Dashboard",
+            "description": "Displays the admin dashboard with secret information.",
+            "responses": {
+               "200": {
+                  "description": "HTML content of the admin dashboard.",
+                  "content": {
+                     "application/json": {
+                        "schema": {
+                           "type": "object",
+                           "properties": {
+                              "secret": {
+                                 "type": "string",
+                                 "description": "Admin secret data"
+                              }
+                           }
+                        }
+                     }
+                  }
+               }
+            }
+         }
+      },
+      "/getAirQuality": {
+         "get": {
+            "summary": "Get Air Quality",
+            "description": "Fetches the current air quality in a user-friendly format.",
+            "responses": {
+               "200": {
+                  "description": "Current air quality.",
+                  "content": {
+                     "application/json": {
+                        "schema": {
+                           "type": "object",
+                           "properties": {
+                              "air_quality": {
+                                 "type": "string",
+                                 "description": "Air quality level"
+                              }
+                           }
+                        }
+                     }
+                  }
+               }
+            }
+         }
+      },
+      "/setAirQualityMap": {
+         "get": {
+            "summary": "Get Air Quality Map",
+            "description": "Displays the air quality map settings page.",
+            "responses": {
+               "200": {
+                  "description": "HTML content of the air quality map settings page."
+               }
+            }
+         },
+         "post": {
+            "summary": "Set Air Quality Map",
+            "description": "Updates the air quality map ranges.",
+            "requestBody": {
+               "required": true,
+               "content": {
+                  "application/json": {
+                     "schema": {
+                        "type": "object",
+                        "properties": {
+                           "good": {
+                              "type": "object",
+                              "properties": {
+                                 "start": {
+                                    "type": "number"
+                                 },
+                                 "end": {
+                                    "type": "number"
+                                 }
+                              }
+                           },
+                           "moderate": {
+                              "type": "object",
+                              "properties": {
+                                 "start": {
+                                    "type": "number"
+                                 },
+                                 "end": {
+                                    "type": "number"
+                                 }
+                              }
+                           },
+                           "poor": {
+                              "type": "object",
+                              "properties": {
+                                 "start": {
+                                    "type": "number"
+                                 },
+                                 "end": {
+                                    "type": "number"
+                                 }
+                              }
+                           }
+                        },
+                        "required": [
+                           "good",
+                           "moderate",
+                           "poor"
+                        ]
+                     }
+                  }
+               }
+            },
+            "responses": {
+               "200": {
+                  "description": "Air quality map updated successfully.",
+                  "content": {
+                     "application/json": {
+                        "schema": {
+                           "type": "object",
+                           "properties": {
+                              "message": {
+                                 "type": "string"
+                              },
+                              "air_quality_map": {
+                                 "type": "object"
+                              }
+                           }
+                        }
+                     }
+                  }
+               },
+               "400": {
+                  "description": "Invalid input data."
+               }
+            }
+         }
+      },
+      "/getNoiseLevel": {
+         "get": {
+            "summary": "Get Noise Level",
+            "description": "Fetches the current noise level.",
+            "responses": {
+               "200": {
+                  "description": "Current noise level.",
+                  "content": {
+                     "application/json": {
+                        "schema": {
+                           "type": "object",
+                           "properties": {
+                              "noise_level": {
+                                 "type": "number",
+                                 "description": "Noise level in dB"
+                              }
+                           }
+                        }
+                     }
+                  }
+               }
+            }
+         }
+      },
+      "/setNoiseLevelMap": {
+         "post": {
+            "summary": "Set Noise Level Map",
+            "description": "Updates the noise level thresholds for 'low', 'medium', and 'high' categories. Thresholds represent ratio of loud noises. If ratio is 0.4, that means 40% of the noises were loud.",
+            "requestBody": {
+               "required": true,
+               "content": {
+                  "application/json": {
+                     "schema": {
+                        "type": "object",
+                        "properties": {
+                           "low": {
+                              "type": "number",
+                              "format": "float",
+                              "minimum": 0,
+                              "maximum": 1,
+                              "description": "Noise level threshold for the 'low' category."
+                           },
+                           "medium": {
+                              "type": "number",
+                              "format": "float",
+                              "minimum": 0,
+                              "maximum": 1,
+                              "description": "Noise level threshold for the 'medium' category."
+                           },
+                           "high": {
+                              "type": "number",
+                              "format": "float",
+                              "minimum": 0,
+                              "maximum": 1,
+                              "description": "Noise level threshold for the 'high' category."
+                           }
+                        },
+                        "required": ["low", "medium", "high"],
+                        "example": {
+                           "low": 0.0,
+                           "medium": 0.3,
+                           "high": 0.6
+                        }
+                     }
+                  }
+               }
+            },
+            "responses": {
+               "200": {
+                  "description": "Noise level map updated successfully.",
+                  "content": {
+                     "application/json": {
+                        "schema": {
+                           "type": "object",
+                           "properties": {
+                              "message": {
+                                 "type": "string",
+                                 "example": "Noise level map updated successfully."
+                              },
+                              "noise_level_map": {
+                                 "type": "object",
+                                 "properties": {
+                                    "low": {
+                                       "type": "number",
+                                       "example": 0.0
+                                    },
+                                    "medium": {
+                                       "type": "number",
+                                       "example": 0.3
+                                    },
+                                    "high": {
+                                       "type": "number",
+                                       "example": 0.6
+                                    }
+                                 }
+                              }
+                           }
+                        }
+                     }
+                  }
+               },
+               "400": {
+                  "description": "Invalid input or server error.",
+                  "content": {
+                     "application/json": {
+                        "schema": {
+                           "type": "object",
+                           "properties": {
+                              "error": {
+                                 "type": "string",
+                                 "example": "Invalid input. Must include low, medium, and high levels."
+                              }
+                           }
+                        }
+                     }
+                  }
+               }
+            }
+         }
+      },
+      "/setNoiseLevelThreshold": {
+         "post": {
+            "summary": "Set Noise Level Threshold",
+            "description": "Sets the threshold for acceptable noise levels.",
+            "requestBody": {
+               "required": true,
+               "content": {
+                  "application/json": {
+                     "schema": {
+                        "type": "object",
+                        "properties": {
+                           "noise_level_threshold": {
+                              "type": "number",
+                              "description": "Threshold value for noise level"
+                           }
+                        },
+                        "required": [
+                           "noise_level_threshold"
+                        ]
+                     }
+                  }
+               }
+            },
+            "responses": {
+               "204": {
+                  "description": "Threshold set successfully."
+               },
+               "400": {
+                  "description": "Missing noise level threshold parameter."
+               }
+            }
+         }
+      },
+      "/setAirQualityThreshold": {
+         "post": {
+            "summary": "Set Air Quality Threshold",
+            "description": "Sets the threshold for acceptable air quality.",
+            "requestBody": {
+               "required": true,
+               "content": {
+                  "application/json": {
+                     "schema": {
+                        "type": "object",
+                        "properties": {
+                           "air_quality_threshold": {
+                              "type": "number",
+                              "description": "Threshold value for air quality"
+                           }
+                        },
+                        "required": [
+                           "air_quality_threshold"
+                        ]
+                     }
+                  }
+               }
+            },
+            "responses": {
+               "204": {
+                  "description": "Threshold set successfully."
+               },
+               "400": {
+                  "description": "Missing air quality threshold parameter."
+               }
+            }
+         }
+      },
+      "/setAirQualityToggle": {
+         "post": {
+            "summary": "Set Air Quality Toggle",
+            "description": "Sets the toggle for air quality monitoring.",
+            "requestBody": {
+               "required": true,
+               "content": {
+                  "application/json": {
+                     "schema": {
+                        "type": "object",
+                        "properties": {
+                           "air_quality_toggle": {
+                              "type": "boolean",
+                              "description": "Toggle value for air quality monitoring."
+                           }
+                        },
+                        "required": [
+                           "air_quality_toggle"
+                        ]
+                     }
+                  }
+               }
+            },
+            "responses": {
+               "204": {
+                  "description": "The air quality toggle was successfully set."
+               },
+               "400": {
+                  "description": "Missing or invalid `air_quality_toggle` parameter."
+               }
+            }
+         }
+      },
+      "/setNoiseLevelToggle": {
+         "post": {
+            "summary": "Set Noise Level Toggle",
+            "description": "Sets the toggle for the noise level monitoring.",
+            "requestBody": {
+               "required": true,
+               "content": {
+                  "application/json": {
+                     "schema": {
+                        "type": "object",
+                        "properties": {
+                           "noise_level_toggle": {
+                              "type": "boolean",
+                              "description": "Toggle value for noise level monitoring."
+                           }
+                        },
+                        "required": [
+                           "noise_level_toggle"
+                        ]
+                     }
+                  }
+               }
+            },
+            "responses": {
+               "204": {
+                  "description": "The noise level toggle was successfully set."
+               },
+               "400": {
+                  "description": "Missing or invalid `noise_level_toggle` parameter."
+               }
+            }
+         }
+      },
+      "/getTemperature": {
+         "get": {
+            "summary": "Get Temperature",
+            "description": "Fetches the current temperature.",
+            "responses": {
+               "200": {
+                  "description": "Current temperature.",
+                  "content": {
+                     "application/json": {
+                        "schema": {
+                           "type": "object",
+                           "properties": {
+                              "temperature": {
+                                 "type": "number",
+                                 "description": "Temperature in degrees Celsius"
+                              }
+                           }
+                        }
+                     }
+                  }
+               }
+            }
+         }
+      },
+      "/setTemperatureThreshold": {
+         "post": {
+            "summary": "Set Temperature Threshold",
+            "description": "Sets the temperature threshold with minimum and maximum values.",
+            "requestBody": {
+               "required": true,
+               "content": {
+                  "application/json": {
+                     "schema": {
+                        "type": "object",
+                        "properties": {
+                           "temperature_threshold": {
+                              "type": "object",
+                              "properties": {
+                                 "min": {
+                                    "type": "number",
+                                    "description": "Minimum temperature threshold."
+                                 },
+                                 "max": {
+                                    "type": "number",
+                                    "description": "Maximum temperature threshold."
+                                 }
+                              },
+                              "required": [
+                                 "min",
+                                 "max"
+                              ]
+                           }
+                        },
+                        "required": [
+                           "temperature_threshold"
+                        ]
+                     }
+                  }
+               }
+            },
+            "responses": {
+               "204": {
+                  "description": "The temperature threshold was successfully set."
+               },
+               "400": {
+                  "description": "Missing or invalid `temperature_threshold` parameter."
+               }
+            }
+         }
+      },
+      "/setTemperatureToggle": {
+         "post": {
+            "summary": "Set Temperature Toggle",
+            "description": "Sets the toggle for temperature monitoring.",
+            "requestBody": {
+               "required": true,
+               "content": {
+                  "application/json": {
+                     "schema": {
+                        "type": "object",
+                        "properties": {
+                           "temperature_toggle": {
+                              "type": "boolean",
+                              "description": "Toggle value for temperature monitoring."
+                           }
+                        },
+                        "required": [
+                           "temperature_toggle"
+                        ]
+                     }
+                  }
+               }
+            },
+            "responses": {
+               "204": {
+                  "description": "The temperature toggle was successfully set."
+               },
+               "400": {
+                  "description": "Missing or invalid `temperature_toggle` parameter."
+               }
+            }
+         }
+      },
+      "/setWindowStateTimer": {
+         "post": {
+            "summary": "Set Window State Timer",
+            "description": "Sets a timer to change the window state (open or close) for a specified duration in minutes.",
+            "requestBody": {
+               "required": true,
+               "content": {
+                  "application/json": {
+                     "schema": {
+                        "type": "object",
+                        "properties": {
+                           "window_state_timer": {
+                              "type": "object",
+                              "description": "Timer configuration for changing the window state.",
+                              "properties": {
+                                 "state": {
+                                    "type": "string",
+                                    "enum": ["open", "close"],
+                                    "description": "Desired state of the window (open or close)."
+                                 },
+                                 "time": {
+                                    "type": "integer",
+                                    "minimum": 1,
+                                    "description": "Duration in minutes for the window to remain in the specified state."
+                                 }
+                              },
+                              "required": ["state", "time"]
+                           }
+                        },
+                        "required": ["window_state_timer"]
+                     }
+                  }
+               }
+            },
+            "responses": {
+               "204": {
+                  "description": "The window state timer was successfully set."
+               },
+               "400": {
+                  "description": "Missing or invalid `window_state_timer` parameter."
+               }
+            }
+         }
+      },
+      "/setWindowStateToggle": {
+         "post": {
+            "summary": "Set Window State Toggle",
+            "description": "Manually toggles the window state (open, close, or auto).",
+            "requestBody": {
+               "required": true,
+               "content": {
+                  "application/json": {
+                     "schema": {
+                        "type": "object",
+                        "properties": {
+                           "window_state_toggle": {
+                              "type": "string",
+                              "enum": ["open", "close", "auto"],
+                              "description": "Desired window state. 'open' to open the window, 'close' to close it, or 'auto' to let it operate automatically."
+                           }
+                        },
+                        "required": ["window_state_toggle"]
+                     }
+                  }
+               }
+            },
+            "responses": {
+               "204": {
+                  "description": "The window state was successfully toggled."
+               },
+               "400": {
+                  "description": "Missing or invalid `window_state_toggle` parameter."
+               }
+            }
+         }
+      },
+      "/setAutomationTimer": {
+         "post": {
+            "summary": "Set Automation Timer",
+            "description": "Sets the start and end times for the automation timer. Only the 'start' and 'end' keys are allowed, in 'HH:MM' format.",
+            "requestBody": {
+               "required": true,
+               "content": {
+                  "application/json": {
+                     "schema": {
+                        "type": "object",
+                        "properties": {
+                           "automation_timer": {
+                              "type": "object",
+                              "description": "Start and end times for the automation timer.",
+                              "properties": {
+                                 "start": {
+                                    "type": "string",
+                                    "format": "time",
+                                    "description": "Start time in HH:MM format."
+                                 },
+                                 "end": {
+                                    "type": "string",
+                                    "format": "time",
+                                    "description": "End time in HH:MM format."
+                                 }
+                              },
+                              "required": [
+                                 "start",
+                                 "end"
+                              ],
+                              "additionalProperties": false
+                           }
+                        },
+                        "required": [
+                           "automation_timer"
+                        ],
+                        "example": {
+                           "start": "21:45",
+                           "end": "06:10"
+                        }
+                     }
+                  }
+               }
+            },
+            "responses": {
+               "204": {
+                  "description": "The timer was successfully set."
+               },
+               "400": {
+                  "description": "Missing, invalid, or extra keys in the `automation_timer` parameter."
+               }
+            }
+         }
+      },
+      "/setAutomationTimerToggle": {
+         "post": {
+            "summary": "Set Automation Timer Toggle",
+            "description": "Sets the toggle for the automation timer.",
+            "requestBody": {
+               "required": true,
+               "content": {
+                  "application/json": {
+                     "schema": {
+                        "type": "object",
+                        "properties": {
+                           "automation_timer_toggle": {
+                              "type": "boolean",
+                              "description": "Toggle value for the automation timer."
+                           }
+                        },
+                        "required": [
+                           "automation_timer_toggle"
+                        ]
+                     }
+                  }
+               }
+            },
+            "responses": {
+               "204": {
+                  "description": "The toggle was successfully set."
+               },
+               "400": {
+                  "description": "Missing or invalid `automation_timer_toggle` parameter."
+               }
+            }
+         }
+      },
+      "/isWindowOpen": {
+         "get": {
+            "summary": "Check Window State",
+            "description": "Returns whether the window is open or not.",
+            "responses": {
+               "200": {
+                  "description": "Returns the window state.",
+                  "content": {
+                     "application/json": {
+                        "schema": {
+                           "type": "object",
+                           "properties": {
+                              "is_window_open": {
+                                 "type": "boolean",
+                                 "description": "True if the window is open, false otherwise."
+                              }
+                           }
+                        }
+                     }
+                  }
+               }
+            }
+         }
+      },
+      "/metrics": {
+         "get": {
+            "summary": "Fetch Metrics",
+            "description": "Fetches all stored metrics and thresholds.",
+            "responses": {
+               "200": {
+                  "description": "All metrics fetched successfully.",
+                  "content": {
+                     "application/json": {
+                        "schema": {
+                           "type": "object",
+                           "additionalProperties": true
+                        }
+                     }
+                  }
+               }
+            }
+         }
+      }
+   }
+}
