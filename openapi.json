@@ -572,7 +572,7 @@
       "/setWindowStateTimer": {
          "post": {
             "summary": "Set Window State Timer",
-            "description": "Sets the timer for automatic window state adjustment.",
+            "description": "Sets a timer to change the window state (open or close) for a specified duration in minutes.",
             "requestBody": {
                "required": true,
                "content": {
@@ -581,23 +581,34 @@
                         "type": "object",
                         "properties": {
                            "window_state_timer": {
-                              "type": "number",
-                              "description": "Timer duration in seconds"
+                              "type": "object",
+                              "description": "Timer configuration for changing the window state.",
+                              "properties": {
+                                 "state": {
+                                    "type": "string",
+                                    "enum": ["open", "close"],
+                                    "description": "Desired state of the window (open or close)."
+                                 },
+                                 "time": {
+                                    "type": "integer",
+                                    "minimum": 1,
+                                    "description": "Duration in minutes for the window to remain in the specified state."
+                                 }
+                              },
+                              "required": ["state", "time"]
                            }
                         },
-                        "required": [
-                           "window_state_timer"
-                        ]
+                        "required": ["window_state_timer"]
                      }
                   }
+               }
+            },
+            "responses": {
+               "204": {
+                  "description": "The window state timer was successfully set."
                },
-               "responses": {
-                  "204": {
-                     "description": "Timer set successfully."
-                  },
-                  "400": {
-                     "description": "Missing window state timer parameter."
-                  }
+               "400": {
+                  "description": "Missing or invalid `window_state_timer` parameter."
                }
             }
          }
@@ -605,7 +616,7 @@
       "/setWindowStateToggle": {
          "post": {
             "summary": "Set Window State Toggle",
-            "description": "Sets the toggle state for windows.",
+            "description": "Manually toggles the window state (open, close, or auto).",
             "requestBody": {
                "required": true,
                "content": {
@@ -614,23 +625,22 @@
                         "type": "object",
                         "properties": {
                            "window_state_toggle": {
-                              "type": "boolean",
-                              "description": "Toggle state for windows"
+                              "type": "string",
+                              "enum": ["open", "close", "auto"],
+                              "description": "Desired window state. 'open' to open the window, 'close' to close it, or 'auto' to let it operate automatically."
                            }
                         },
-                        "required": [
-                           "window_state_toggle"
-                        ]
+                        "required": ["window_state_toggle"]
                      }
                   }
+               }
+            },
+            "responses": {
+               "204": {
+                  "description": "The window state was successfully toggled."
                },
-               "responses": {
-                  "204": {
-                     "description": "Toggle state set successfully."
-                  },
-                  "400": {
-                     "description": "Missing window state toggle parameter."
-                  }
+               "400": {
+                  "description": "Missing or invalid `window_state_toggle` parameter."
                }
             }
          }
