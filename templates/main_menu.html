@@ -152,7 +152,7 @@
 
 		<div class="footer">
 			<div class="footer-section" id="home-section">
-				<span class="footer-icon">&#8962;</span>
+				<span class="footer-icon">&#x2B8C;</span>
 			</div>
 			<div class="footer-section" id="settings-section">
 				<span class="footer-icon">&#9881;</span>
@@ -405,15 +405,44 @@
 			});
 		}
 		function refreshWindowState(state) {
-			if(state){
-				windowImage.src = "{{ url_for('static', filename='assets/window_opened.webp') }}";
-				windowImage.alt = "window is OPENED";
-				windowStatus.textContent = "OPENED";
-			}else{
-				windowImage.src = "{{ url_for('static', filename='assets/window_closed.webp') }}";
-				windowImage.alt = "window is CLOSED";
-				windowStatus.textContent = "CLOSED";
-			}
+			// old
+			// if(state){
+			// 	windowImage.src = "{{ url_for('static', filename='assets/window_opened.webp') }}";
+			// 	windowImage.alt = "window is OPENED";
+			// 	windowStatus.textContent = "OPENED";
+			// }else{
+			// 	windowImage.src = "{{ url_for('static', filename='assets/window_closed.webp') }}";
+			// 	windowImage.alt = "window is CLOSED";
+			// 	windowStatus.textContent = "CLOSED";
+			// }
+
+			// new
+			fetch('/isWindowOpen', {
+				method: 'GET',
+				headers: {
+					'Content-Type': 'application/json',
+				},
+			})
+			.then((response) => {
+				if (!response.ok) {
+					throw new Error(`HTTP error! status: ${response.status}`);
+				}
+				return response.json();
+			})
+			.then((data) => {
+				if (data.is_window_open) {
+					windowImage.src = "{{ url_for('static', filename='assets/window_opened.webp') }}";
+					windowImage.alt = "window is OPENED";
+					windowStatus.textContent = "OPENED";
+				} else {
+					windowImage.src = "{{ url_for('static', filename='assets/window_closed.webp') }}";
+					windowImage.alt = "window is CLOSED";
+					windowStatus.textContent = "CLOSED";
+				}
+			})
+			.catch((error) => {
+				console.error('Error fetching window state:', error);
+			});
 		}
 		windowImage.addEventListener('click', async () => {
 			if (windowStatus.textContent.trim().toUpperCase() === 'CLOSED') {
