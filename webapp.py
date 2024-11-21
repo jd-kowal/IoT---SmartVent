@@ -42,7 +42,7 @@ class Storage:
             "moderate": 25,
             "poor": 50
         }
-        self.window_state_timer = None
+        self.manual_until = None
         self.window_state_toggle = None
         self.automation_timer = {
             "start": None,
@@ -143,16 +143,29 @@ def setVals():
 
     print("\n<< Gathered data >>")
     set_noise_level()
-    print(f"[{enabled_symbol(app_data.automation_timer_toggle)}] Time: {datetime.now().time().strftime('%H:%M')}")
+    now = datetime.now()
+    print(f"[{enabled_symbol(app_data.automation_timer_toggle)}] Time: {now.time().strftime('%H:%M')}")
     print(f"[{enabled_symbol(app_data.noise_level_toggle)}] Noise level: {app_data.noise_level}")
     set_air_quality()
     print(f"[{enabled_symbol(app_data.air_quality_toggle)}] Air quality: {app_data.air_quality_real} ({app_data.air_quality_user_friendly})")
     set_temperature()
     print(f"[{enabled_symbol(app_data.temperature_toggle)}] Temperature: {app_data.temperature}")
 
-    if app_data.window_state_toggle:
+    if app_data.window_state_toggle == 'open':
+        print("Window is force open by user")
+        return
+    if app_data.window_state_toggle == 'close':
         print("Window is force closed by user")
         return
+
+    if app_data.manual_until is not None:
+        if now.timestamp() <= app_data.manual_until:
+            minutes_left = round((app_data.manual_until-now.timestamp())/60, 1)
+            print(f"Window still will be manual for {minutes_left} minutes")
+            return
+        else:
+            app_data.manual_until = None
+            app_data.save()
 
     if should_window_open():
         if not app_data.is_window_open:
@@ -170,7 +183,7 @@ def setVals():
     return
 
 
-DATA_INTERVAL_SECONDS = 60
+DATA_INTERVAL_SECONDS = 6
 
 scheduler = BackgroundScheduler()
 scheduler.add_job(func=setVals, trigger="interval", seconds=DATA_INTERVAL_SECONDS)
@@ -456,14 +469,35 @@ def set_temperature_toggle():
 
 @app.route('/setWindowStateTimer', methods=['POST'])
 def set_window_state_timer():
+    # window_state_timer is in minutes
     window_state_timer = request.json.get('window_state_timer')
 
     if window_state_timer is None:
         return 'Missing window_state_timer parameter', 400
 
-    app_data.window_state_timer = window_state_timer
-    app_data.save()
-    return '', 204
+    if 'state' not in window_state_timer or window_state_timer['state'] not in ['open', 'close']:
+        return 'Incorrect "state" for window_state_timer parameter'
+
+    timestamp = datetime.now().timestamp() + window_state_timer['time']*60
+    state = window_state_timer['state']
+
+    app_data.manual_until = timestamp
+
+    if state == 'open':
+        if not app_data.is_window_open:
+            set_window_angle(app_data.window_open_angle)
+            app_data.is_window_open = True
+        app_data.save()
+        print("** Window Opened Manually (timed) **")
+        return f'Successfully opened window for {window_state_timer} minutes', 204
+    if state == 'close':
+        if app_data.is_window_open:
+            set_window_angle(app_data.window_closed_angle)
+            app_data.is_window_open = False
+        app_data.save()
+        print("** Window Closed Manually (timed) **")
+        return f'Successfully closed window for {window_state_timer} minutes', 204
+
 
 
 @app.route('/setWindowStateToggle', methods=['POST'])
@@ -473,16 +507,31 @@ def set_window_state_toggle():
     if window_state_toggle is None:
         return 'Missing window_state_toggle parameter', 400
 
-    # If toggled, close window if open
-    if window_state_toggle and app_data.is_window_open:
-        set_window_angle(app_data.window_closed_angle)
-        app_data.is_window_open = False
-        print("** Window Closed Manually **")
+    if window_state_toggle not in ['open', 'close', 'auto']:
+        return 'Incorrect window_state_toggle parameter', 400
 
     app_data.window_state_toggle = window_state_toggle
-    app_data.save()
 
-    return '', 204
+    if window_state_toggle == "close":
+        if app_data.is_window_open:
+            set_window_angle(app_data.window_closed_angle)
+            app_data.is_window_open = False
+        app_data.save()
+        print("** Window Closed Manually **")
+        return 'Successfully closed window', 204
+
+    if window_state_toggle == "open":
+        if not app_data.is_window_open:
+            set_window_angle(app_data.window_open_angle)
+            app_data.is_window_open = True
+        app_data.save()
+        print("** Window Open Manually **")
+        return 'Successfully opened window', 204
+
+    if window_state_toggle == "auto":
+        app_data.save()
+        print("** Window Now Working Automatically **")
+        return 'Successfully set window state to automatic', 204
 
 
 @app.route('/setAutomationTimer', methods=['POST'])
@@ -525,7 +574,10 @@ def set_automation_timer_toggle():
 
 @app.route('/isWindowOpen', methods=['GET'])
 def get_is_window_open():
-    return jsonify({'is_window_open': app_data.is_window_open}), 200
+    data = {'is_window_open': app_data.is_window_open}
+    if app_data.manual_until is not None:
+        data['manual_until'] = app_data.manual_until
+    return jsonify(data), 200
 
 
 @app.route('/metrics', methods=['GET'])
