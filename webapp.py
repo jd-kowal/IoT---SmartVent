@@ -1,5 +1,5 @@
 from flask import Flask, render_template, request, redirect, session, url_for, jsonify
-from datetime import timedelta
+from datetime import timedelta, datetime
 import os
 import json
 from functools import wraps
@@ -48,7 +48,7 @@ class Storage:
             "start": None,
             "end": None
         }
-        self.automation_timer_toggle = None
+        self.automation_timer_toggle = False
 
         self.is_window_open = None
         self.window_open_angle = 45
@@ -94,7 +94,25 @@ app_data = Storage()
 app_data.load()
 
 
-def should_window_open():
+def is_automiation_time() -> bool:
+    """Return True if time is withing the automation time window"""
+    start_time = datetime.strptime(app_data.automation_timer["start"], "%H:%M").time()
+    end_time = datetime.strptime(app_data.automation_timer["end"], "%H:%M").time()
+    current_time = datetime.now().time()
+
+    if start_time <= end_time:
+        # Range is confined to a single day
+        return start_time <= current_time <= end_time
+    else:
+        # Range crosses midnight
+        return current_time >= start_time or current_time <= end_time
+
+
+def should_window_open() -> bool:
+    if app_data.automation_timer_toggle and not is_automiation_time():
+        print(f"> Time not met - automation={app_data.automation_timer}")
+        return False
+
     if app_data.noise_level_toggle:
         for level, _ in sorted(app_data.noise_level_map.items(), key=lambda item: item[1]):
             if level == app_data.noise_level:
@@ -121,13 +139,19 @@ def should_window_open():
 def setVals():
     if app_data.air_quality_map is None:
         return
+
+    def enabled_symbol(toggle):
+        enabled_symbols = ['✗', '✓']
+        return enabled_symbols[int(bool(toggle))]
+
+    print("\n<< Gathered data >>")
     set_noise_level()
-    print("Noise level:", app_data.noise_level)
+    print(f"[{enabled_symbol(app_data.automation_timer_toggle)}] Time: {datetime.now().time().strftime('%H:%M')}")
+    print(f"[{enabled_symbol(app_data.noise_level_toggle)}] Noise level: {app_data.noise_level}")
     set_air_quality()
-    print("Air quality:", app_data.air_quality_user_friendly)
-    print("Air quality:", app_data.air_quality_real)
+    print(f"[{enabled_symbol(app_data.air_quality_toggle)}] Air quality: {app_data.air_quality_real} ({app_data.air_quality_user_friendly})")
     set_temperature()
-    print("Temperature:", app_data.temperature)
+    print(f"[{enabled_symbol(app_data.temperature_toggle)}] Temperature: {app_data.temperature}")
 
     if should_window_open():
         if not app_data.is_window_open:
@@ -362,7 +386,7 @@ def set_noise_level():
     for _ in range(20):
         noise_levels.append(getNoiseLevel())
         sleep(0.1)
-    print(noise_levels)
+    print(f"Noise values: {[int(x) for x in noise_levels]}")
     for level, value in sorted(app_data.noise_level_map.items(), key=lambda item: item[1], reverse=True):
         if sum(noise_levels)/len(noise_levels) >= value:
             app_data.noise_level = level
@@ -463,6 +487,20 @@ def set_automation_timer():
 
     if automation_timer is None:
         return 'Missing automation_timer parameter', 400
+
+    if len(automation_timer.keys()) != 2:
+        return 'Incorrect keys in automation_timer parameter', 400
+
+    # Validate and reformat "start" and "end"
+    for key in ['start', 'end']:
+        if key not in automation_timer:
+            return f'Missing {key} in automation_timer', 400
+        try:
+            # Parse and reformat to "%H:%M"
+            parsed_time = datetime.strptime(automation_timer[key], '%H:%M').time()
+            automation_timer[key] = parsed_time.strftime('%H:%M')
+        except ValueError:
+            return f'Invalid format for {key}, expected "%H:%M"', 400
 
     app_data.automation_timer = automation_timer
     app_data.save()
