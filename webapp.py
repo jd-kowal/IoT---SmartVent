@@ -120,9 +120,6 @@ def should_window_open() -> bool:
             if level == app_data.noise_level_threshold:
                 print(f"> Noise not met - thresh={app_data.noise_level_threshold} noise={app_data.noise_level}")
                 return False
-    # bool(app_data.noise_level) > bool(app_data.noise_level_threshold):
-    #     print(f"> Noise not met - thresh={app_data.noise_level_threshold} noise={app_data.noise_level}")
-        return False
     if app_data.temperature_toggle and (app_data.temperature > app_data.temperature_threshold["max"] or app_data.temperature < app_data.temperature_threshold["min"]):
         print(f"> Temp not met - thresh={app_data.temperature_threshold} temp={app_data.temperature}")
         return False
