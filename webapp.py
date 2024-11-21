@@ -183,7 +183,7 @@ def setVals():
     return
 
 
-DATA_INTERVAL_SECONDS = 6
+DATA_INTERVAL_SECONDS = 60
 
 scheduler = BackgroundScheduler()
 scheduler.add_job(func=setVals, trigger="interval", seconds=DATA_INTERVAL_SECONDS)
@@ -482,6 +482,7 @@ def set_window_state_timer():
     state = window_state_timer['state']
 
     app_data.manual_until = timestamp
+    app_data.window_state_toggle = 'auto'
 
     if state == 'open':
         if not app_data.is_window_open:
