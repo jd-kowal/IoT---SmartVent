@@ -536,6 +536,7 @@ def set_window_state_toggle():
         return 'Incorrect window_state_toggle parameter', 400
 
     app_data.window_state_toggle = window_state_toggle
+    app_data.manual_until = None
 
     if window_state_toggle == "close":
         if app_data.is_window_open:
