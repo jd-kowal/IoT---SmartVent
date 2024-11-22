@@ -162,7 +162,7 @@
 
 	<div id="windowModal" class="modal hidden">
 		<div class="modal-content">
-			<h3>Close the window for:</h3>
+			<h3 id="windowStatusText">Close the window for:</h3>
 			<ul>
 				<li data-duration="15">15 mins</li>
 				<li data-duration="30">30 mins</li>
@@ -170,7 +170,8 @@
 				<li data-duration="180">3 hours</li>
 				<li data-duration="480">8 hours</li>
 				<li data-duration="1440">24 hours</li>
-				<li data-duration="9999">Until I open it manually</li>
+				<li data-duration="-1" id="windowStatusText2">Until I open it manually</li>
+				<li data-duration="0">Automated</li>
 			</ul>
 		</div>
 	</div>
@@ -350,6 +351,8 @@
 		const windowStatus = document.getElementById('windowStatus');
 		const windowModal = document.getElementById('windowModal');
 		const modalContent = windowModal.querySelector('.modal-content');
+		const windowStatusText = document.getElementById('windowStatusText');
+		const windowStatusText2 = document.getElementById('windowStatusText2');
 		function draw_window_modal() {
 			return new Promise((resolve) => {
 				windowModal.classList.remove('hidden');
@@ -388,13 +391,19 @@
 				console.error('Error toggling window state:', error);
 			});
 		}
-		function setWindowStateTimer(time) {
+
+		function setWindowStateTimer(state, time) {
 			fetch('/setWindowStateTimer', {
 				method: 'POST',
 				headers: {
 					'Content-Type': 'application/json',
 				},
-				body: JSON.stringify({ window_state_timer: time }),
+				body: JSON.stringify({
+					window_state_timer: {
+						state: state,
+						time: time
+					}
+				}),
 			})
 			.then((response) => {
 				if (!response.ok) {
@@ -405,7 +414,7 @@
 				console.error('Error setting window timer:', error);
 			});
 		}
-		function refreshWindowState(state) {
+		function refreshWindowState() {
 			// old
 			// if(state){
 			// 	windowImage.src = "{{ url_for('static', filename='assets/window_opened.webp') }}";
@@ -435,10 +444,14 @@
 					windowImage.src = "{{ url_for('static', filename='assets/window_opened.webp') }}";
 					windowImage.alt = "window is OPENED";
 					windowStatus.textContent = "OPENED";
+					windowStatusText.textContent = "Close the window for:";
+					windowStatusText2.textContent = "Until I open it manually";
 				} else {
 					windowImage.src = "{{ url_for('static', filename='assets/window_closed.webp') }}";
 					windowImage.alt = "window is CLOSED";
 					windowStatus.textContent = "CLOSED";
+					windowStatusText.textContent = "Open the window for:";
+					windowStatusText2.textContent = "Until I close it manually";
 				}
 			})
 			.catch((error) => {
@@ -447,15 +460,38 @@
 		}
 		windowImage.addEventListener('click', async () => {
 			if (windowStatus.textContent.trim().toUpperCase() === 'CLOSED') {
-				toggleWindowState(true);
-				refreshWindowState(true);
-				localStorage.setItem('isWindowOpen', "true");
+				const [isOutside, duration] = await draw_window_modal();
+				if (!isOutside){
+					console.log(duration);
+					if (duration == -1){
+						toggleWindowState("open");
+						refreshWindowState();
+					}
+					else if (duration == 0) {
+						toggleWindowState("auto");
+						refreshWindowState();
+					}else{
+						console.log(duration);
+						setWindowStateTimer("open", duration);
+						refreshWindowState();
+					}
+				}
 			} else {
 				const [isOutside, duration] = await draw_window_modal();
 				if (!isOutside){
-					setWindowStateTimer(duration);
-					refreshWindowState(false);
-					localStorage.setItem('isWindowOpen', "false");
+					console.log(duration);
+					if (duration == -1){
+						toggleWindowState("close");
+						refreshWindowState();
+					}
+					else if (duration == 0) {
+						toggleWindowState("auto");
+						refreshWindowState();
+					}else{
+						console.log(duration);
+						setWindowStateTimer("close", duration);
+						refreshWindowState();
+					}
 				}
 			}
 		});
@@ -475,8 +511,7 @@
 			if(loadedTemp != "err") refreshAirQuality(loadedAirQuality);
 			const loadedNoise = localStorage.getItem('noise_level');
 			if(loadedTemp != "err") refreshNoiseLevel(loadedNoise);
-			const loadedWindowState = localStorage.getItem('isWindowOpen') === 'true';
-			refreshWindowState(loadedWindowState);
+			refreshWindowState();
 			fetchTemperature();
 			fetchAirQuality();
 			fetchNoiseLevel();
