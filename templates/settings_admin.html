@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Window Control Panel</title>
+    <title>Admin Window Control Panel</title>
 	<link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
 </head>
 <body>
@@ -67,6 +67,12 @@
             <span class="slider-label">high</span>
         </div>
         <div class="center-label medium-label">medium</div>
+        <div class="input-container">
+            <input type="number" id="noise-medium-min" min="0" max="100" placeholder="Min" onchange="updateNoiseMediumRange()">
+            -
+            <input type="number" id="noise-medium-max" min="0" max="100" placeholder="Max" onchange="updateNoiseMediumRange()">
+            %
+        </div>
         <div class="switch-container">
             <span>off</span>
             <label class="switch">
@@ -87,6 +93,12 @@
             <span class="slider-label">poor</span>
         </div>
         <div class="center-label medium-label">moderate</div>
+        <div class="input-container">
+            <input type="number" id="airquality-moderate-min" min="0" max="100" placeholder="Min" onchange="updateAirQualityModerateRange()">
+            -
+            <input type="number" id="airquality-moderate-max" min="0" max="100" placeholder="Max" onchange="updateAirQualityModerateRange()">
+            µg/m^3
+        </div>
         <div class="switch-container">
             <span>off</span>
             <label class="switch">
@@ -183,6 +195,41 @@
 
             return airQualityValue;
         }
+
+        function updateNoiseMediumRange() {
+            const minInput = document.getElementById("noise-medium-min");
+            const maxInput = document.getElementById("noise-medium-max");
+
+            const min = parseInt(minInput.value) || 0;
+            const max = parseInt(maxInput.value) || 100;
+
+            if (min >= max) {
+                alert("Minimum value cannot be greater than or equal to maximum value.");
+                minInput.value = max - 1;
+            }
+
+            console.log(`Updated Noise Medium Range: ${min}% - ${max}%`);
+        }
+
+        function updateAirQualityModerateRange() {
+            const minInput = document.getElementById("airquality-moderate-min");
+            const maxInput = document.getElementById("airquality-moderate-max");
+
+            const min = parseInt(minInput.value) || 0;
+            const max = parseInt(maxInput.value) || 100;
+
+            if (min >= max) {
+                alert("Minimum value cannot be greater than or equal to maximum value.");
+                minInput.value = max - 1;
+            }
+
+            console.log(`Updated Air Quality Moderate Range: ${min}% - ${max}%`);
+        }
+
+
+
+
+
 
 		function setTemperatureToggle(newState) {
 			fetch('/setTemperatureToggle', {
@@ -334,9 +381,85 @@
 				}
 			})
 			.catch((error) => {
-				console.error('Error setting temperature threshold:', error);
+				console.error('Error setting timer threshold:', error);
 			});
 		}
+
+        function setAirQualityMap(min, max) {
+            const airQualityMap = {
+                good: 0,
+                moderate: min,
+                poor: max   
+            };
+            fetch('/setAirQualityMap', {
+				method: 'POST',
+				headers: {
+					'Content-Type': 'application/json',
+				},
+                body: JSON.stringify(airQualityMap)
+			})
+			.then((response) => {
+				if (!response.ok) {
+					throw new Error(`HTTP error! status: ${response.status}`);
+				}
+			})
+			.catch((error) => {
+				console.error('Error setting air quality level map threshold:', error);
+			});
+		}
+
+        function setNoiseMap(min, max) {
+            const noiseLevelMap = {
+                low: 0,
+                medium: min,
+                high: max   
+            };
+            fetch('/setNoiseLevelMap', {
+				method: 'POST',
+				headers: {
+					'Content-Type': 'application/json',
+				},
+                body: JSON.stringify(noiseLevelMap)
+			})
+			.then((response) => {
+				if (!response.ok) {
+					throw new Error(`HTTP error! status: ${response.status}`);
+				}
+			})
+			.catch((error) => {
+				console.error('Error setting noise level map threshold:', error);
+			});
+		}
+
+        // function getAirQualityMap() {
+        //     fetch('/setAirQualityMap')
+        //         .then(response => {
+        //             if (!response.ok) {
+        //                 throw new Error(`HTTP error! status: ${response.status}`);
+        //             }
+        //             return response.json();
+        //         })
+        //         .then(data => {
+        //             const airQualityMap = data.air_quality_map;
+                    
+        //             // Extract values for "moderate" and "poor"
+        //             const moderateMin = airQualityMap.moderate;
+        //             const poorMax = airQualityMap.poor;
+
+        //             // Update the input fields with the fetched values
+        //             document.getElementById("airquality-moderate-min").value = moderateMin;
+        //             document.getElementById("airquality-moderate-max").value = poorMax;
+
+        //             // Optional: Store in local storage for later use
+        //             localStorage.setItem('air_quality_map', JSON.stringify(airQualityMap));
+                    
+        //             console.log('Air Quality Map fetched and updated:', airQualityMap);
+        //         })
+        //         .catch(error => {
+        //             console.error('Error fetching air quality map:', error);
+        //         });
+        // }
+
 
         
         document.getElementById('home-section').addEventListener('click', () => {
@@ -361,9 +484,15 @@
             const timerStart = document.getElementById("timer-start");
             const timerEnd = document.getElementById("timer-end");
             const formatTime = (value) => `${String(value).padStart(2, '0')}:00`;
-
             const startFormatted = formatTime(timerStart.value);
             const endFormatted = formatTime(timerEnd.value);
+
+            const airQualityMin = parseInt(document.getElementById("airquality-moderate-min").value) || 0;
+            const airQualityMax = parseInt(document.getElementById("airquality-moderate-max").value) || 100;
+
+            const noiseMin = parseInt(document.getElementById("noise-medium-min").value) || 0;
+            const noiseMax = parseInt(document.getElementById("noise-medium-max").value) || 100;
+
 
             setTemperatureToggle(tempToggleState);
             setTimerToggle(timerToggleState);
@@ -373,16 +502,20 @@
             setAirThreshold(airLevel);
             setTemperatureThreshold(minTempCelsius.toFixed(1), maxTempCelsius.toFixed(1));
             setTimerThreshold(startFormatted, endFormatted);
+            setAirQualityMap(airQualityMin, airQualityMax);
+            setNoiseMap(noiseMin/100, noiseMax/100);
 
             alert('Settings saved!');
             // window.location.href = '/settingsUser';
 		});
+
         
         window.onload = function() {
 			updateTemperature();
             updateTimer();
             updateNoiseLevel();
             updateAirQuality();
+            // getAirQualityMap();
 		};
     </script>
 </body>

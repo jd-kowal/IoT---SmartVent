@@ -300,6 +300,13 @@ def settings():
         'settings_user.html'
     )
 
+@app.route('/settingsAdmin', methods=['GET'])
+def settingsAdmin():
+
+    return render_template(
+        'settings_admin.html'
+    )
+
 
 @app.route('/mainMenu', methods=['GET'])
 def menu():
