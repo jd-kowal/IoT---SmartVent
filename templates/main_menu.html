@@ -177,6 +177,9 @@
 	</div>
 
 	<script>
+		const userRole = "{{ data.role }}";
+		console.log("Logged in as: " + userRole);
+
 		function refreshTemp(temp) {
 			const color = getTemperatureColor(temp);
 			document.getElementById('tempCircle').style.borderColor = color;
@@ -501,7 +504,11 @@
 		});
 
 		document.getElementById('settings-section').addEventListener('click', () => {
-			window.location.href = '/settingsUser';
+			if (userRole === "admin"){
+				window.location.href = '/settingsAdmin';
+			}else {
+				window.location.href = '/settingsUser';
+			}
 		});
 
 		function refreshAll() {
