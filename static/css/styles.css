@@ -211,3 +211,17 @@ input:checked + .slider-switch:before {
     border-radius: 5px;
 }
 
+.footer-button {
+	background-color: #1f0029; /* Blue background */
+	color: white; /* White text */
+	border: none;
+	padding: 8px 16px;
+	border-radius: 5px;
+	font-size: 16px;
+	cursor: pointer;
+	transition: background-color 0.3s;
+}
+
+.footer-button:hover {
+	background-color: #7f06b7; /* Darker blue on hover */
+}
