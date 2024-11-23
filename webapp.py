@@ -302,12 +302,13 @@ def settings():
         )
     elif session['logged_in'] == 'admin':
         return render_template(
-            'settings_user.html',
+            'settings_admin.html',
             data={"role": "admin"}
         )
 
 
 @app.route('/settingsAdmin', methods=['GET'])
+@admin_required
 def settingsAdmin():
 
     return render_template(
