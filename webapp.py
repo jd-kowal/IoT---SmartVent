@@ -295,30 +295,44 @@ def login():
 
 @app.route('/settingsUser', methods=['GET'])
 def settings():
+    if session['logged_in'] == 'user':
+        return render_template(
+            'settings_user.html',
+            data={"role": "user"}
+        )
+    elif session['logged_in'] == 'admin':
+        return render_template(
+            'settings_user.html',
+            data={"role": "admin"}
+        )
 
-    return render_template(
-        'settings_user.html'
-    )
 
 
 @app.route('/mainMenu', methods=['GET'])
 def menu():
 
-    return render_template(
-        'main_menu.html'
-    )
+    if session['logged_in'] == 'user':
+        return render_template(
+            'main_menu.html',
+            data={"role": "user"}
+        )
+    elif session['logged_in'] == 'admin':
+        return render_template(
+            'main_menu.html',
+            data={"role": "admin"}
+        )
 
 
 @app.route('/userDashboard', methods=['GET'])
 @user_required
 def user_dashboard():
-    return render_template('main_menu.html')
+    return render_template('main_menu.html', data={"role": "user"})
 
 
 @app.route('/adminDashboard', methods=['GET'])
 @admin_required
 def admin_dashboard():
-    return render_template('admin_dashboard.html', data={"secret": "This is the admin dashboard."})
+    return render_template('main_menu.html', data={"role": "admin"})
 
 
 @app.route('/logout', methods=['GET'])
