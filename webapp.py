@@ -14,8 +14,6 @@ from time import sleep
 
 from apscheduler.schedulers.background import BackgroundScheduler
 
-initial_run = False
-
 
 class Storage:
     def __init__(self):
@@ -89,6 +87,7 @@ APP_DATA_FILE = 'app_data.json'
 
 app_data = Storage()
 app_data.load()
+app_data.save()
 
 
 def is_automiation_time() -> bool:
@@ -205,6 +204,28 @@ def admin_required(f):
     return decorated_function
 
 
+def user_endpoint(f):
+    @wraps(f)
+    def decorated_function(*args, **kwargs):
+        if session.get('logged_in') not in ['admin', 'user']:
+            return 'You have to be logged in', 401
+        return f(*args, **kwargs)
+    return decorated_function
+
+
+def admin_endpoint(f):
+    @wraps(f)
+    def decorated_function(*args, **kwargs):
+        if session.get('logged_in') not in ['admin', 'user']:
+            return 'You have to be logged in', 401
+
+        if session.get('logged_in') != 'admin':
+            return 'You have to be an admin', 403
+
+        return f(*args, **kwargs)
+    return decorated_function
+
+
 @app.route('/', methods=['GET'])
 def index():
     show_set_pin = app_data.admin_pin is None
@@ -231,47 +252,51 @@ def index():
 @app.route('/setUserPin', methods=['POST'])
 # @admin_required
 def set_user_pin():
-    if request.method == 'POST':
-        data = request.get_json()
+    if app_data.user_pin is not None:
+        return '', 404
 
-        pin1 = data.get('pin1')
-        pin2 = data.get('pin2')
+    data = request.get_json()
 
-        if not pin1 or not pin2:
-            return jsonify({"error": "Both PINs are required."}), 400
+    pin1 = data.get('pin1')
+    pin2 = data.get('pin2')
 
-        if not Storage.is_valid_pin(pin1, 4) or not Storage.is_valid_pin(pin2, 4):
-            return jsonify({"error": "User PIN must be exactly 4 digits."}), 400
+    if not pin1 or not pin2:
+        return jsonify({"error": "Both PINs are required."}), 400
 
-        if pin1 != pin2:
-            return jsonify({"error": "User PINs do not match. Please try again."}), 400
+    if not Storage.is_valid_pin(pin1, 4) or not Storage.is_valid_pin(pin2, 4):
+        return jsonify({"error": "User PIN must be exactly 4 digits."}), 400
 
-        app_data.user_pin = pin1
-        app_data.save()
-        return '', 204
+    if pin1 != pin2:
+        return jsonify({"error": "User PINs do not match. Please try again."}), 400
+
+    app_data.user_pin = pin1
+    app_data.save()
+    return 'Success', 200
 
 
 @app.route('/setAdminPin', methods=['POST'])
 def set_admin_pin():
-    if request.method == 'POST':
-        data = request.get_json()
+    if app_data.admin_pin is not None:
+        return '', 404
 
-        pin1 = data.get('pin1')
-        pin2 = data.get('pin2')
+    data = request.get_json()
 
-        if not pin1 or not pin2:
-            return 'Both PINs are required.', 400
+    pin1 = data.get('pin1')
+    pin2 = data.get('pin2')
 
-        if not Storage.is_valid_pin(pin1, 8) or not Storage.is_valid_pin(pin2, 8):
-            return 'Admin PIN must be exactly 8 digits.', 400
+    if not pin1 or not pin2:
+        return 'Both PINs are required.', 400
 
-        if pin1 != pin2:
-            return 'Admin PINs do not match. Please try again.', 400
+    if not Storage.is_valid_pin(pin1, 8) or not Storage.is_valid_pin(pin2, 8):
+        return 'Admin PIN must be exactly 8 digits.', 400
 
-        app_data.admin_pin = pin1
-        app_data.save()
+    if pin1 != pin2:
+        return 'Admin PINs do not match. Please try again.', 400
 
-        return '', 200
+    app_data.admin_pin = pin1
+    app_data.save()
+
+    return '', 200
 
 
 @app.route('/login', methods=['POST'])
@@ -293,13 +318,14 @@ def login():
 
 
 @app.route('/settingsUser', methods=['GET'])
+@user_required
 def settings():
-    if session['logged_in'] == 'user':
+    if session.get('logged_in') == 'user':
         return render_template(
             'settings_user.html',
             data={"role": "user"}
         )
-    elif session['logged_in'] == 'admin':
+    elif session.get('logged_in') == 'admin':
         return render_template(
             'settings_admin.html',
             data={"role": "admin"}
@@ -316,10 +342,8 @@ def settingsAdmin():
 
 
 @app.route('/mainMenu', methods=['GET'])
+@user_required
 def menu():
-
-    if 'logged_in' not in session:
-        return redirect(url_for('index'))
 
     if session['logged_in'] == 'user':
         return render_template(
@@ -352,6 +376,7 @@ def logout():
 
 
 @app.route('/getAirQuality', methods=['GET'])
+@user_endpoint
 def get_air_quality():
     return jsonify({'air_quality': app_data.air_quality_user_friendly}), 200
 
@@ -366,6 +391,7 @@ def set_air_quality():
 
 
 @app.route('/setAirQualityMap', methods=['GET', 'POST'])
+@admin_endpoint
 def set_air_quality_map():
 
     if request.method == 'GET':
@@ -390,6 +416,7 @@ def set_air_quality_map():
 
 
 @app.route('/setAirQualityThreshold', methods=['POST'])
+@user_endpoint
 def set_air_quality_threshold():
     air_quality_threshold = request.json.get('air_quality_threshold')
 
@@ -398,10 +425,11 @@ def set_air_quality_threshold():
 
     app_data.air_quality_threshold = air_quality_threshold
     app_data.save()
-    return '', 204
+    return 'Success', 200
 
 
 @app.route('/setAirQualityToggle', methods=['POST'])
+@user_endpoint
 def set_air_quality_toggle():
     air_quality_toggle = request.json.get('air_quality_toggle')
 
@@ -410,10 +438,11 @@ def set_air_quality_toggle():
 
     app_data.air_quality_toggle = air_quality_toggle
     app_data.save()
-    return '', 204
+    return 'Success', 200
 
 
 @app.route('/getNoiseLevel', methods=['GET'])
+@user_endpoint
 def get_noise_level():
     return jsonify({'noise_level': app_data.noise_level}), 200
 
@@ -432,6 +461,7 @@ def set_noise_level():
 
 
 @app.route('/setNoiseLevelMap', methods=['POST'])
+@admin_endpoint
 def set_noise_level_map():
     try:
         data = request.get_json()
@@ -456,6 +486,7 @@ def set_noise_level_map():
 
 
 @app.route('/setNoiseLevelThreshold', methods=['POST'])
+@user_endpoint
 def set_noise_level_threshold():
     noise_level_threshold = request.json.get('noise_level_threshold')
 
@@ -464,10 +495,11 @@ def set_noise_level_threshold():
 
     app_data.noise_level_threshold = noise_level_threshold
     app_data.save()
-    return '', 204
+    return 'Success', 200
 
 
 @app.route('/setNoiseLevelToggle', methods=['POST'])
+@user_endpoint
 def set_noise_level_toggle():
     noise_level_toggle = request.json.get('noise_level_toggle')
 
@@ -476,10 +508,11 @@ def set_noise_level_toggle():
 
     app_data.noise_level_toggle = noise_level_toggle
     app_data.save()
-    return '', 204
+    return 'Success', 200
 
 
 @app.route('/getTemperature', methods=['GET'])
+@user_endpoint
 def get_temperature_level():
     return jsonify({'temperature': app_data.temperature}), 200
 
@@ -491,6 +524,7 @@ def set_temperature():
 
 
 @app.route('/setTemperatureThreshold', methods=['POST'])
+@user_endpoint
 def set_temperature_threshold():
     temperature_threshold = request.json.get('temperature_threshold')
 
@@ -499,10 +533,11 @@ def set_temperature_threshold():
 
     app_data.temperature_threshold = temperature_threshold
     app_data.save()
-    return '', 204
+    return 'Success', 200
 
 
 @app.route('/setTemperatureToggle', methods=['POST'])
+@user_endpoint
 def set_temperature_toggle():
     temperature_toggle = request.json.get('temperature_toggle')
 
@@ -511,10 +546,11 @@ def set_temperature_toggle():
 
     app_data.temperature_toggle = temperature_toggle
     app_data.save()
-    return '', 204
+    return 'Success', 200
 
 
 @app.route('/setWindowStateTimer', methods=['POST'])
+@user_endpoint
 def set_window_state_timer():
     # window_state_timer is in minutes
     window_state_timer = request.json.get('window_state_timer')
@@ -537,17 +573,18 @@ def set_window_state_timer():
             app_data.is_window_open = True
         app_data.save()
         print("** Window Opened Manually (timed) **")
-        return f'Successfully opened window for {window_state_timer} minutes', 204
+        return f'Successfully opened window for {window_state_timer} minutes', 200
     if state == 'close':
         if app_data.is_window_open:
             set_window_angle(app_data.window_closed_angle)
             app_data.is_window_open = False
         app_data.save()
         print("** Window Closed Manually (timed) **")
-        return f'Successfully closed window for {window_state_timer} minutes', 204
+        return f'Successfully closed window for {window_state_timer} minutes', 200
 
 
 @app.route('/setWindowStateToggle', methods=['POST'])
+@user_endpoint
 def set_window_state_toggle():
     window_state_toggle = request.json.get('window_state_toggle')
 
@@ -566,7 +603,7 @@ def set_window_state_toggle():
             app_data.is_window_open = False
         app_data.save()
         print("** Window Closed Manually **")
-        return 'Successfully closed window', 204
+        return 'Successfully closed window', 200
 
     if window_state_toggle == "open":
         if not app_data.is_window_open:
@@ -574,15 +611,16 @@ def set_window_state_toggle():
             app_data.is_window_open = True
         app_data.save()
         print("** Window Open Manually **")
-        return 'Successfully opened window', 204
+        return 'Successfully opened window', 200
 
     if window_state_toggle == "auto":
         app_data.save()
         print("** Window Now Working Automatically **")
-        return 'Successfully set window state to automatic', 204
+        return 'Successfully set window state to automatic', 200
 
 
 @app.route('/setAutomationTimer', methods=['POST'])
+@user_endpoint
 def set_automation_timer():
     automation_timer = request.json.get('automation_timer')
 
@@ -605,10 +643,11 @@ def set_automation_timer():
 
     app_data.automation_timer = automation_timer
     app_data.save()
-    return '', 204
+    return 'Success', 200
 
 
 @app.route('/setAutomationTimerToggle', methods=['POST'])
+@user_endpoint
 def set_automation_timer_toggle():
     automation_timer_toggle = request.json.get('automation_timer_toggle')
 
@@ -617,10 +656,11 @@ def set_automation_timer_toggle():
 
     app_data.automation_timer_toggle = automation_timer_toggle
     app_data.save()
-    return '', 204
+    return 'Success', 200
 
 
 @app.route('/isWindowOpen', methods=['GET'])
+@user_endpoint
 def get_is_window_open():
     data = {'is_window_open': app_data.is_window_open}
     if app_data.manual_until is not None:
@@ -629,6 +669,7 @@ def get_is_window_open():
 
 
 @app.route('/metrics', methods=['GET'])
+@user_endpoint
 def metrics():
     air_quality_metrics = "\n".join(
         [f'air_quality_map{{quality="{key}"}} {value}' for key, value in app_data.air_quality_map.items()]
