@@ -415,6 +415,12 @@ def set_air_quality_map():
             return jsonify({"error": str(e)}), 400
 
 
+@app.route('/getAirQualityMap', methods=['GET'])
+@admin_endpoint
+def get_air_quality_map():
+    return jsonify({'air_quality_map': app_data.air_quality_map}), 200
+
+
 @app.route('/setAirQualityThreshold', methods=['POST'])
 @user_endpoint
 def set_air_quality_threshold():
@@ -428,6 +434,12 @@ def set_air_quality_threshold():
     return 'Success', 200
 
 
+@app.route('/getAirQualityThreshold', methods=['GET'])
+@user_endpoint
+def get_air_quality_threshold():
+    return jsonify({'air_quality_threshold': app_data.air_quality_threshold}), 200
+
+
 @app.route('/setAirQualityToggle', methods=['POST'])
 @user_endpoint
 def set_air_quality_toggle():
@@ -439,6 +451,12 @@ def set_air_quality_toggle():
     app_data.air_quality_toggle = air_quality_toggle
     app_data.save()
     return 'Success', 200
+
+
+@app.route('/getAirQualityToggle', methods=['GET'])
+@user_endpoint
+def get_air_quality_toggle():
+    return jsonify({'air_quality_toggle': app_data.air_quality_toggle}), 200
 
 
 @app.route('/getNoiseLevel', methods=['GET'])
@@ -485,6 +503,12 @@ def set_noise_level_map():
         return jsonify({"error": str(e)}), 400
 
 
+@app.route('/getNoiseLevelMap', methods=['GET'])
+@admin_endpoint
+def get_noise_level_map():
+    return jsonify({'noise_level_map': app_data.noise_level_map}), 200
+
+
 @app.route('/setNoiseLevelThreshold', methods=['POST'])
 @user_endpoint
 def set_noise_level_threshold():
@@ -498,6 +522,12 @@ def set_noise_level_threshold():
     return 'Success', 200
 
 
+@app.route('/getNoiseLevelThreshold', methods=['GET'])
+@user_endpoint
+def get_noise_level_threshold():
+    return jsonify({'noise_level_threshold': app_data.noise_level_threshold}), 200
+
+
 @app.route('/setNoiseLevelToggle', methods=['POST'])
 @user_endpoint
 def set_noise_level_toggle():
@@ -509,6 +539,12 @@ def set_noise_level_toggle():
     app_data.noise_level_toggle = noise_level_toggle
     app_data.save()
     return 'Success', 200
+
+
+@app.route('/getNoiseLevelToggle', methods=['GET'])
+@user_endpoint
+def get_noise_level_toggle():
+    return jsonify({'noise_level_toggle': app_data.noise_level_toggle}), 200
 
 
 @app.route('/getTemperature', methods=['GET'])
@@ -536,6 +572,12 @@ def set_temperature_threshold():
     return 'Success', 200
 
 
+@app.route('/getTemperatureThreshold', methods=['GET'])
+@user_endpoint
+def get_temperature_threshold():
+    return jsonify({'temperature_threshold': app_data.temperature_threshold}), 200
+
+
 @app.route('/setTemperatureToggle', methods=['POST'])
 @user_endpoint
 def set_temperature_toggle():
@@ -547,6 +589,12 @@ def set_temperature_toggle():
     app_data.temperature_toggle = temperature_toggle
     app_data.save()
     return 'Success', 200
+
+
+@app.route('/getTemperatureToggle', methods=['GET'])
+@user_endpoint
+def get_temperature_toggle():
+    return jsonify({'temperature_toggle': app_data.temperature_toggle}), 200
 
 
 @app.route('/setWindowStateTimer', methods=['POST'])
@@ -646,6 +694,12 @@ def set_automation_timer():
     return 'Success', 200
 
 
+@app.route('/getAutomationTimer', methods=['GET'])
+@user_endpoint
+def get_automation_timer():
+    return jsonify({'automation_timer': app_data.automation_timer}), 200
+
+
 @app.route('/setAutomationTimerToggle', methods=['POST'])
 @user_endpoint
 def set_automation_timer_toggle():
@@ -657,6 +711,12 @@ def set_automation_timer_toggle():
     app_data.automation_timer_toggle = automation_timer_toggle
     app_data.save()
     return 'Success', 200
+
+
+@app.route('/getAutomationTimerToggle', methods=['GET'])
+@user_endpoint
+def get_automation_timer_toggle():
+    return jsonify({'automation_timer_toggle': app_data.automation_timer_toggle}), 200
 
 
 @app.route('/isWindowOpen', methods=['GET'])
