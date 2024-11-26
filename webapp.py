@@ -14,6 +14,7 @@ from time import sleep
 
 from apscheduler.schedulers.background import BackgroundScheduler
 
+import netifaces as ni
 
 class Storage:
     def __init__(self):
@@ -117,7 +118,7 @@ def should_window_open() -> bool:
             if level == app_data.noise_level_threshold:
                 print(f"> Noise not met - thresh={app_data.noise_level_threshold} noise={app_data.noise_level}")
                 return False
-    if app_data.temperature_toggle and (app_data.temperature > app_data.temperature_threshold["max"] or app_data.temperature < app_data.temperature_threshold["min"]):
+    if app_data.temperature_toggle and (app_data.temperature > float(app_data.temperature_threshold["max"]) or app_data.temperature < float(app_data.temperature_threshold["min"])):
         print(f"> Temp not met - thresh={app_data.temperature_threshold} temp={app_data.temperature}")
         return False
     if app_data.air_quality_toggle:
@@ -205,15 +206,24 @@ def admin_required(f):
     return decorated_function
 
 
+def get_ip_address(interface):
+    try:
+        return ni.ifaddresses(interface)[ni.AF_INET][0]['addr']
+    except Exception:
+        return "127.0.0.1"
+
+
 def require_bearer_token(func):
     def wrapper(*args, **kwargs):
         auth_header = request.headers.get("Authorization")
         if not auth_header or not auth_header.startswith("Bearer "):
-            return jsonify({"error": "Unauthorized"}), 401
+            ip_address = get_ip_address("eth0")
+            return redirect(f"http://{ip_address}:3000")
 
         token = auth_header.split("Bearer ")[1]
         if token != app_data.bearer_token:
-            return jsonify({"error": "Invalid token"}), 403
+            ip_address = get_ip_address("eth0")
+            return redirect(f"http://{ip_address}:3000")
 
         return func(*args, **kwargs)
     return wrapper
