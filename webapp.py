@@ -54,6 +54,7 @@ class Storage:
 
         self.user_pin = None
         self.admin_pin = None
+        self.bearer_token = "?5Y?Js2QZ/K8h8@{pukvxd-q:gJqu+itO|ytvSsf]tu1=CPS.DKCH9*xps1b8OBv"
 
     def get_air_quality(self, pm_value):
         # Go from worst to best air quality in map
@@ -202,6 +203,20 @@ def admin_required(f):
             return redirect(url_for('index'))
         return f(*args, **kwargs)
     return decorated_function
+
+
+def require_bearer_token(func):
+    def wrapper(*args, **kwargs):
+        auth_header = request.headers.get("Authorization")
+        if not auth_header or not auth_header.startswith("Bearer "):
+            return jsonify({"error": "Unauthorized"}), 401
+
+        token = auth_header.split("Bearer ")[1]
+        if token != app_data.bearer_token:
+            return jsonify({"error": "Invalid token"}), 403
+
+        return func(*args, **kwargs)
+    return wrapper
 
 
 def user_endpoint(f):
@@ -729,7 +744,7 @@ def get_is_window_open():
 
 
 @app.route('/metrics', methods=['GET'])
-@user_endpoint
+@require_bearer_token
 def metrics():
     air_quality_metrics = "\n".join(
         [f'air_quality_map{{quality="{key}"}} {value}' for key, value in app_data.air_quality_map.items()]
@@ -759,6 +774,10 @@ def metrics():
         "# HELP automation_timer_toggle Indicates if the automation timer is enabled.",
         "# TYPE automation_timer_toggle gauge",
         f"automation_timer_toggle {1 if app_data.automation_timer_toggle else 0}",
+
+        "# HELP is_window_open Indicates if the window is opend.",
+        "# TYPE is_window_open gauge",
+        f"is_window_open {1 if app_data.is_window_open else 0}",
         air_quality_metrics
     ]
 

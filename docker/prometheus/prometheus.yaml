@@ -1,7 +1,8 @@
 global:
-  scrape_interval: 5s
+  scrape_interval: 30s
 
 scrape_configs:
   - job_name: "Window App Metrics"
+    bearer_token: '?5Y?Js2QZ/K8h8@{pukvxd-q:gJqu+itO|ytvSsf]tu1=CPS.DKCH9*xps1b8OBv'
     static_configs:
       - targets: ["192.168.1.170:5000"]
