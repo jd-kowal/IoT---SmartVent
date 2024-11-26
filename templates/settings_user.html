@@ -14,8 +14,8 @@
         <p class="description">Sets time between which the window will open automatically</p>
         <div class="slider-container">
             <span id="timer-start-label" class="slider-label">5:00</span>
-            <input type="range" min="0" max="24" step="1" value="5" class="slider timer-slider on-right-fill" id="timer-start" oninput="updateTimer()" style="--color: lightgreen;">
-            <input type="range" min="0" max="24" step="1" value="22" class="slider timer-slider on-left-fill" id="timer-end" oninput="updateTimer()" style="--color: lightgreen;">
+            <input type="range" min="0" max="23" step="1" value="5" class="slider timer-slider on-right-fill" id="timer-start" oninput="updateTimer()" style="--color: lightgreen;">
+            <input type="range" min="0" max="23" step="1" value="22" class="slider timer-slider on-left-fill" id="timer-end" oninput="updateTimer()" style="--color: lightgreen;">
             <span id="timer-end-label" class="slider-label">22:00</span>
         </div>
         <div class="switch-container">
@@ -98,6 +98,9 @@
     </div>
 
     <div class="container">
+        <div class="warning-message">
+            If you have not saved settings, your data will be lost!
+        </div>
         <div class="footer">
             <div class="footer-section" id="home-section">
                 <span class="footer-icon">&#8962;</span>
@@ -337,10 +340,233 @@
 				console.error('Error setting temperature threshold:', error);
 			});
 		}
+        
+        //-----------
+
+        function getTemperatureToggle() {
+            fetch('/getTemperatureToggle')
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error(`HTTP error! status: ${response.status}`);
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    const temperatureToggle = data.temperature_toggle;
+
+                    // Update the checkbox state based on the fetched value
+                    const tempToggleCheckbox = document.getElementById("temp-toggle");
+                    tempToggleCheckbox.checked = temperatureToggle;
+
+                    console.log('Temperature toggle fetched and updated:', temperatureToggle);
+                })
+                .catch(error => {
+                    console.error('Error fetching temperature toggle:', error);
+                });
+        }
+
+        function getTimerToggle() {
+            fetch('/getAutomationTimerToggle')
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error(`HTTP error! status: ${response.status}`);
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    const timerToggle = data.automation_timer_toggle;
+
+                    // Update the checkbox state based on the fetched value
+                    const timerToggleCheckbox = document.getElementById("timer-toggle");
+                    timerToggleCheckbox.checked = timerToggle;
+
+                    console.log('Timer toggle fetched and updated:', timerToggle);
+                })
+                .catch(error => {
+                    console.error('Error fetching timer toggle:', error);
+                });
+        }
+
+        function getNoiseToggle() {
+            fetch('/getNoiseLevelToggle')
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error(`HTTP error! status: ${response.status}`);
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    const noiseToggle = data.noise_level_toggle;
+
+                    // Update the checkbox state based on the fetched value
+                    const noiseToggleCheckbox = document.getElementById("noise-toggle");
+                    noiseToggleCheckbox.checked = noiseToggle;
+
+                    console.log('noise toggle fetched and updated:', noiseToggle);
+                })
+                .catch(error => {
+                    console.error('Error fetching noise toggle:', error);
+                });
+        }
+
+        function getAirToggle() {
+            fetch('/getAirQualityToggle')
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error(`HTTP error! status: ${response.status}`);
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    const airToggle = data.air_quality_toggle;
+
+                    // Update the checkbox state based on the fetched value
+                    const airToggleCheckbox = document.getElementById("air-toggle");
+                    airToggleCheckbox.checked = airToggle;
+
+                    console.log('air toggle fetched and updated:', airToggle);
+                })
+                .catch(error => {
+                    console.error('Error fetching air toggle:', error);
+                });
+        }
+
+        function getNoiseLevelThreshold() {
+            fetch('/getNoiseLevelThreshold')
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error(`HTTP error! status: ${response.status}`);
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    const noiseLevelThreshold = data.noise_level_threshold;
+
+                    // Map the noise levels to slider values
+                    const noiseLevels = { "low": 0, "medium": 1, "high": 2 };
+                    const sliderValue = noiseLevels[noiseLevelThreshold];
+
+                    // Update the slider position and style
+                    const noiseSlider = document.getElementById("noise");
+                    noiseSlider.value = sliderValue;
+                    noiseSlider.style.setProperty("--value", (sliderValue / 2) * 100);
+
+                    console.log('Noise Level Threshold fetched and updated:', noiseLevelThreshold);
+                })
+                .catch(error => {
+                    console.error('Error fetching noise level threshold:', error);
+                });
+        }
+
+        function getAirQualityThreshold() {
+            fetch('/getAirQualityThreshold')
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error(`HTTP error! status: ${response.status}`);
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    const airQualityThreshold = data.air_quality_threshold;
+
+                    // Map the air quality levels to slider values
+                    const airQualityLevels = { "good": 0, "moderate": 1, "poor": 2 };
+                    const sliderValue = airQualityLevels[airQualityThreshold];
+
+                    // Update the slider and label
+                    const airQualitySlider = document.getElementById("airquality");
+                    airQualitySlider.value = sliderValue;
+                    airQualitySlider.style.setProperty("--value", (sliderValue / 2) * 100);
+
+                    // Optionally log the updated threshold
+                    console.log('Air Quality Threshold fetched and updated:', airQualityThreshold);
+                })
+                .catch(error => {
+                    console.error('Error fetching air quality threshold:', error);
+                });
+        }
+
+        function getAutomationTimer() {
+            fetch('/getAutomationTimer')
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error(`HTTP error! status: ${response.status}`);
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    const timer = data.automation_timer;
+                    const startTime = parseInt(timer.start.split(':')[0]);
+                    const endTime = parseInt(timer.end.split(':')[0]);
+
+                    // Update sliders and labels
+                    const startSlider = document.getElementById("timer-start");
+                    const endSlider = document.getElementById("timer-end");
+                    startSlider.value = startTime;
+                    endSlider.value = endTime;
+
+                    // Update displayed time
+                    document.getElementById("timer-start-label").innerText = timer.start;
+                    document.getElementById("timer-end-label").innerText = timer.end;
+
+                    // Update slider fill styles
+                    startSlider.style.setProperty("--value", (startTime / 24) * 100);
+                    endSlider.style.setProperty("--value", (endTime / 24) * 100);
+
+                    console.log('Automation Timer fetched and updated:', timer);
+                })
+                .catch(error => {
+                    console.error('Error fetching automation timer:', error);
+                });
+        }
+
+        function getTemperatureThreshold() {
+            fetch('/getTemperatureThreshold')
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error(`HTTP error! status: ${response.status}`);
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    const threshold = data.temperature_threshold;
+                    const minTemp = parseFloat(threshold.min);
+                    const maxTemp = parseFloat(threshold.max);
+
+                    // Update sliders
+                    const minSlider = document.getElementById("temperature-min");
+                    const maxSlider = document.getElementById("temperature-max");
+                    minSlider.value = minTemp;
+                    maxSlider.value = maxTemp;
+
+                    // Update displayed values
+                    const tempUnitToggle = document.getElementById("temp-unit-toggle");
+                    const isFahrenheit = tempUnitToggle.checked;
+                    const minTempDisplay = isFahrenheit
+                        ? (minTemp * 9/5 + 32).toFixed(1) + '°F'
+                        : minTemp + '°C';
+                    const maxTempDisplay = isFahrenheit
+                        ? (maxTemp * 9/5 + 32).toFixed(1) + '°F'
+                        : maxTemp + '°C';
+
+                    document.getElementById("temp-display").innerText = `${minTempDisplay} - ${maxTempDisplay}`;
+
+                    // Update slider fill styles
+                    const minPercentage = ((minTemp - minSlider.min) / (minSlider.max - minSlider.min)) * 100;
+                    const maxPercentage = ((maxTemp - maxSlider.min) / (maxSlider.max - maxSlider.min)) * 100;
+                    minSlider.style.setProperty("--value", minPercentage);
+                    maxSlider.style.setProperty("--value", maxPercentage);
+
+                    console.log('Temperature Threshold fetched and updated:', threshold);
+                })
+                .catch(error => {
+                    console.error('Error fetching temperature threshold:', error);
+                });
+        }
+
 
         
         document.getElementById('home-section').addEventListener('click', () => {
-			alert('If you have not saved settings, data will be lost!');
             window.location.href = '/mainMenu';
 		});
 
@@ -379,10 +605,19 @@
 		});
         
         window.onload = function() {
-			updateTemperature();
-            updateTimer();
-            updateNoiseLevel();
-            updateAirQuality();
+			// updateTemperature();
+            // updateTimer();
+            // updateNoiseLevel();
+            // updateAirQuality();
+            getAutomationTimer();  
+            getTemperatureThreshold(); 
+            getNoiseLevelThreshold();
+            getAirQualityThreshold();
+
+            getTimerToggle();
+            getTemperatureToggle();
+            getNoiseToggle();
+            getAirToggle();
 		};
     </script>
 </body>

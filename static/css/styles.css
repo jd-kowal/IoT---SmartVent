@@ -171,6 +171,7 @@ input:checked + .slider-switch:before {
     display: flex;
     flex-direction: column;
     height: 100%;
+
 }
 
 .footer {
@@ -224,4 +225,12 @@ input:checked + .slider-switch:before {
 
 .footer-button:hover {
 	background-color: #7f06b7; /* Darker blue on hover */
+}
+
+.warning-message {
+	margin-top: -5px;
+	font-size: 16px;
+	color: red;
+	text-align: center;
+
 }
