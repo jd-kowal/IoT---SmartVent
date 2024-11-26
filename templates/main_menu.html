@@ -148,7 +148,13 @@
 			</div>
 		</div>
 
-		<div class="arrow-icon">&#x2B07;</div>
+		<!-- <div class="arrow-icon">&#x2B07;</div> -->
+
+		<div class="footer">
+            <div class="footer-section" id="charts-section">
+                <button type="button" class="footer-button">Historical Data</button>
+            </div>
+		</div>
 
 		<div class="footer">
 			<div class="footer-section" id="home-section">
@@ -509,6 +515,10 @@
 			}else {
 				window.location.href = '/settingsUser';
 			}
+		});
+
+		document.getElementById('charts-section').addEventListener('click', () => {
+            window.location.href = '/metrics';
 		});
 
 		function refreshAll() {
