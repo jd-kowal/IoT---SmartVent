@@ -217,11 +217,15 @@ def require_bearer_token(func):
     def wrapper(*args, **kwargs):
         auth_header = request.headers.get("Authorization")
         if not auth_header or not auth_header.startswith("Bearer "):
+            if session.get('logged_in') not in ['admin', 'user']:
+                return redirect(url_for('index'))
             ip_address = get_ip_address("eth0")
             return redirect(f"http://{ip_address}:3000")
 
         token = auth_header.split("Bearer ")[1]
         if token != app_data.bearer_token:
+            if session.get('logged_in') not in ['admin', 'user']:
+                return redirect(url_for('index'))
             ip_address = get_ip_address("eth0")
             return redirect(f"http://{ip_address}:3000")
 
