@@ -130,17 +130,6 @@
             }
          }
       },
-      "/logout": {
-         "get": {
-            "summary": "Logout",
-            "description": "Logs out the current user or admin.",
-            "responses": {
-               "302": {
-                  "description": "Redirect to the home page."
-               }
-            }
-         }
-      },
       "/settingsUser": {
          "get": {
             "summary": "User Settings",
@@ -148,6 +137,41 @@
             "responses": {
                "200": {
                   "description": "HTML content of the user settings page."
+               }
+            }
+         }
+      },
+      "/settingsAdmin": {
+         "get": {
+            "summary": "Admin Settings Page",
+            "description": "Returns the admin settings page HTML.",
+            "responses": {
+               "200": {
+                  "description": "HTML page for admin settings.",
+                  "content": {
+                     "text/html": {
+                        "schema": {
+                           "type": "string",
+                           "example": "<html>...</html>"
+                        }
+                     }
+                  }
+               },
+               "403": {
+                  "description": "Forbidden. Admin access required.",
+                  "content": {
+                     "application/json": {
+                        "schema": {
+                           "type": "object",
+                           "properties": {
+                              "error": {
+                                 "type": "string",
+                                 "example": "Admin access required."
+                              }
+                           }
+                        }
+                     }
+                  }
                }
             }
          }
@@ -198,6 +222,17 @@
             }
          }
       },
+      "/logout": {
+         "get": {
+            "summary": "Logout",
+            "description": "Logs out the current user or admin.",
+            "responses": {
+               "302": {
+                  "description": "Redirect to the home page."
+               }
+            }
+         }
+      },
       "/getAirQuality": {
          "get": {
             "summary": "Get Air Quality",
@@ -243,44 +278,25 @@
                         "type": "object",
                         "properties": {
                            "good": {
-                              "type": "object",
-                              "properties": {
-                                 "start": {
-                                    "type": "number"
-                                 },
-                                 "end": {
-                                    "type": "number"
-                                 }
-                              }
+                              "type": "number"
                            },
                            "moderate": {
-                              "type": "object",
-                              "properties": {
-                                 "start": {
-                                    "type": "number"
-                                 },
-                                 "end": {
-                                    "type": "number"
-                                 }
-                              }
+                              "type": "number"
                            },
                            "poor": {
-                              "type": "object",
-                              "properties": {
-                                 "start": {
-                                    "type": "number"
-                                 },
-                                 "end": {
-                                    "type": "number"
-                                 }
-                              }
+                              "type": "number"
                            }
                         },
                         "required": [
                            "good",
                            "moderate",
                            "poor"
-                        ]
+                        ],
+                        "example": {
+                           "good": 0,
+                           "moderate": 25,
+                           "poor": 50
+                        }
                      }
                   }
                }
@@ -297,7 +313,21 @@
                                  "type": "string"
                               },
                               "air_quality_map": {
-                                 "type": "object"
+                                 "type": "object",
+                                 "properties": {
+                                    "good": {
+                                       "type": "number",
+                                       "example": 0
+                                    },
+                                    "moderate": {
+                                       "type": "number",
+                                       "example": 25
+                                    },
+                                    "poor": {
+                                       "type": "number",
+                                       "example": 50
+                                    }
+                                 }
                               }
                            }
                         }
@@ -306,6 +336,164 @@
                },
                "400": {
                   "description": "Invalid input data."
+               }
+            }
+         }
+      },
+      "/getAirQualityMap": {
+         "get": {
+            "summary": "Get Air Quality Map",
+            "description": "Returns the air quality mapping values.",
+            "responses": {
+               "200": {
+                  "description": "Air quality map retrieved successfully.",
+                  "content": {
+                     "application/json": {
+                        "schema": {
+                           "type": "object",
+                           "properties": {
+                              "air_quality_map": {
+                                 "type": "object",
+                                 "example": {
+                                    "good": 0,
+                                    "moderate": 25,
+                                    "poor": 50
+                                 }
+                              }
+                           }
+                        }
+                     }
+                  }
+               },
+               "403": {
+                  "description": "Forbidden. Admin access required.",
+                  "content": {
+                     "application/json": {
+                        "schema": {
+                           "type": "object",
+                           "properties": {
+                              "error": {
+                                 "type": "string",
+                                 "example": "Admin access required."
+                              }
+                           }
+                        }
+                     }
+                  }
+               }
+            }
+         }
+      },
+      "/setAirQualityThreshold": {
+         "post": {
+            "summary": "Set Air Quality Threshold",
+            "description": "Sets the threshold for acceptable air quality.",
+            "requestBody": {
+               "required": true,
+               "content": {
+                  "application/json": {
+                     "schema": {
+                        "type": "object",
+                        "properties": {
+                           "air_quality_threshold": {
+                              "type": "number",
+                              "description": "Threshold value for air quality"
+                           }
+                        },
+                        "required": [
+                           "air_quality_threshold"
+                        ]
+                     }
+                  }
+               }
+            },
+            "responses": {
+               "204": {
+                  "description": "Threshold set successfully."
+               },
+               "400": {
+                  "description": "Missing air quality threshold parameter."
+               }
+            }
+         }
+      },
+      "/getAirQualityThreshold": {
+         "get": {
+            "summary": "Get Air Quality Threshold",
+            "description": "Returns the air quality threshold value.",
+            "responses": {
+               "200": {
+                  "description": "Air quality threshold retrieved successfully.",
+                  "content": {
+                     "application/json": {
+                        "schema": {
+                           "type": "object",
+                           "properties": {
+                              "air_quality_threshold": {
+                                 "type": "string",
+                                 "example": "moderate"
+                              }
+                           }
+                        }
+                     }
+                  }
+               }
+            }
+         }
+      },
+      "/setAirQualityToggle": {
+         "post": {
+            "summary": "Set Air Quality Toggle",
+            "description": "Sets the toggle for air quality monitoring.",
+            "requestBody": {
+               "required": true,
+               "content": {
+                  "application/json": {
+                     "schema": {
+                        "type": "object",
+                        "properties": {
+                           "air_quality_toggle": {
+                              "type": "boolean",
+                              "description": "Toggle value for air quality monitoring."
+                           }
+                        },
+                        "required": [
+                           "air_quality_toggle"
+                        ]
+                     }
+                  }
+               }
+            },
+            "responses": {
+               "204": {
+                  "description": "The air quality toggle was successfully set."
+               },
+               "400": {
+                  "description": "Missing or invalid `air_quality_toggle` parameter."
+               }
+            }
+         }
+      },
+      "/getAirQualityToggle": {
+         "get": {
+            "summary": "Get Air Quality Toggle",
+            "description": "Returns the air quality toggle state.",
+            "responses": {
+               "200": {
+                  "description": "Air quality toggle state retrieved successfully.",
+                  "content": {
+                     "application/json": {
+                        "schema": {
+                           "type": "object",
+                           "properties": {
+                              "air_quality_toggle": {
+                                 "type": "boolean",
+                                 "example": true
+                              }
+                           }
+                        }
+                     }
+                  }
                }
             }
          }
@@ -430,6 +618,50 @@
             }
          }
       },
+      "/getNoiseLevelMap": {
+         "get": {
+            "summary": "Get Noise Level Map",
+            "description": "Returns the noise level mapping values.",
+            "responses": {
+               "200": {
+                  "description": "Noise level map retrieved successfully.",
+                  "content": {
+                     "application/json": {
+                        "schema": {
+                           "type": "object",
+                           "properties": {
+                              "noise_level_map": {
+                                 "type": "object",
+                                 "example": {
+                                    "low": 0,
+                                    "medium": 0.3,
+                                    "high": 0.6
+                                 }
+                              }
+                           }
+                        }
+                     }
+                  }
+               },
+               "403": {
+                  "description": "Forbidden. Admin access required.",
+                  "content": {
+                     "application/json": {
+                        "schema": {
+                           "type": "object",
+                           "properties": {
+                              "error": {
+                                 "type": "string",
+                                 "example": "Admin access required."
+                              }
+                           }
+                        }
+                     }
+                  }
+               }
+            }
+         }
+      },
       "/setNoiseLevelThreshold": {
          "post": {
             "summary": "Set Noise Level Threshold",
@@ -463,68 +695,26 @@
             }
          }
       },
-      "/setAirQualityThreshold": {
-         "post": {
-            "summary": "Set Air Quality Threshold",
-            "description": "Sets the threshold for acceptable air quality.",
-            "requestBody": {
-               "required": true,
-               "content": {
-                  "application/json": {
-                     "schema": {
-                        "type": "object",
-                        "properties": {
-                           "air_quality_threshold": {
-                              "type": "number",
-                              "description": "Threshold value for air quality"
+      "/getNoiseLevelThreshold": {
+         "get": {
+            "summary": "Get Noise Level Threshold",
+            "description": "Returns the noise level threshold value.",
+            "responses": {
+               "200": {
+                  "description": "Noise level threshold retrieved successfully.",
+                  "content": {
+                     "application/json": {
+                        "schema": {
+                           "type": "object",
+                           "properties": {
+                              "noise_level_threshold": {
+                                 "type": "string",
+                                 "example": "medium"
+                              }
                            }
-                        },
-                        "required": [
-                           "air_quality_threshold"
-                        ]
+                        }
                      }
                   }
-               }
-            },
-            "responses": {
-               "204": {
-                  "description": "Threshold set successfully."
-               },
-               "400": {
-                  "description": "Missing air quality threshold parameter."
-               }
-            }
-         }
-      },
-      "/setAirQualityToggle": {
-         "post": {
-            "summary": "Set Air Quality Toggle",
-            "description": "Sets the toggle for air quality monitoring.",
-            "requestBody": {
-               "required": true,
-               "content": {
-                  "application/json": {
-                     "schema": {
-                        "type": "object",
-                        "properties": {
-                           "air_quality_toggle": {
-                              "type": "boolean",
-                              "description": "Toggle value for air quality monitoring."
-                           }
-                        },
-                        "required": [
-                           "air_quality_toggle"
-                        ]
-                     }
-                  }
-               }
-            },
-            "responses": {
-               "204": {
-                  "description": "The air quality toggle was successfully set."
-               },
-               "400": {
-                  "description": "Missing or invalid `air_quality_toggle` parameter."
                }
             }
          }
@@ -558,6 +748,30 @@
                },
                "400": {
                   "description": "Missing or invalid `noise_level_toggle` parameter."
+               }
+            }
+         }
+      },
+      "/getNoiseLevelToggle": {
+         "get": {
+            "summary": "Get Noise Level Toggle",
+            "description": "Returns the noise level toggle state.",
+            "responses": {
+               "200": {
+                  "description": "Noise level toggle state retrieved successfully.",
+                  "content": {
+                     "application/json": {
+                        "schema": {
+                           "type": "object",
+                           "properties": {
+                              "noise_level_toggle": {
+                                 "type": "boolean",
+                                 "example": true
+                              }
+                           }
+                        }
+                     }
+                  }
                }
             }
          }
@@ -632,6 +846,33 @@
             }
          }
       },
+      "/getTemperatureThreshold": {
+         "get": {
+            "summary": "Get Temperature Threshold",
+            "description": "Returns the temperature threshold values.",
+            "responses": {
+               "200": {
+                  "description": "Temperature threshold retrieved successfully.",
+                  "content": {
+                     "application/json": {
+                        "schema": {
+                           "type": "object",
+                           "properties": {
+                              "temperature_threshold": {
+                                 "type": "object",
+                                 "example": {
+                                    "min": 10,
+                                    "max": 31
+                                 }
+                              }
+                           }
+                        }
+                     }
+                  }
+               }
+            }
+         }
+      },
       "/setTemperatureToggle": {
          "post": {
             "summary": "Set Temperature Toggle",
@@ -661,6 +902,30 @@
                },
                "400": {
                   "description": "Missing or invalid `temperature_toggle` parameter."
+               }
+            }
+         }
+      },
+      "/getTemperatureToggle": {
+         "get": {
+            "summary": "Get Temperature Toggle",
+            "description": "Returns the temperature toggle state.",
+            "responses": {
+               "200": {
+                  "description": "Temperature toggle state retrieved successfully.",
+                  "content": {
+                     "application/json": {
+                        "schema": {
+                           "type": "object",
+                           "properties": {
+                              "temperature_toggle": {
+                                 "type": "boolean",
+                                 "example": true
+                              }
+                           }
+                        }
+                     }
+                  }
                }
             }
          }
@@ -795,6 +1060,33 @@
             }
          }
       },
+      "/getAutomationTimer": {
+         "get": {
+            "summary": "Get Automation Timer",
+            "description": "Returns the automation timer settings.",
+            "responses": {
+               "200": {
+                  "description": "Automation timer settings retrieved successfully.",
+                  "content": {
+                     "application/json": {
+                        "schema": {
+                           "type": "object",
+                           "properties": {
+                              "automation_timer": {
+                                 "type": "object",
+                                 "example": {
+                                    "start": null,
+                                    "end": null
+                                 }
+                              }
+                           }
+                        }
+                     }
+                  }
+               }
+            }
+         }
+      },
       "/setAutomationTimerToggle": {
          "post": {
             "summary": "Set Automation Timer Toggle",
@@ -824,6 +1116,30 @@
                },
                "400": {
                   "description": "Missing or invalid `automation_timer_toggle` parameter."
+               }
+            }
+         }
+      },
+      "/getAutomationTimerToggle": {
+         "get": {
+            "summary": "Get Automation Timer Toggle",
+            "description": "Returns the automation timer toggle state.",
+            "responses": {
+               "200": {
+                  "description": "Automation timer toggle state retrieved successfully.",
+                  "content": {
+                     "application/json": {
+                        "schema": {
+                           "type": "object",
+                           "properties": {
+                              "automation_timer_toggle": {
+                                 "type": "boolean",
+                                 "example": false
+                              }
+                           }
+                        }
+                     }
+                  }
                }
             }
          }
